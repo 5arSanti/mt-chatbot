@@ -31,7 +31,10 @@ class ChatbotWidget extends HTMLElement {
   }
 
   get apiUrl() {
-    return this.getAttribute("api-url") ?? "https://course-storage-api-qdrant-1018797915827.us-east1.run.app/qa";
+    return (
+      this.getAttribute("api-url") ??
+      "https://course-storage-api-qdrant-1018797915827.us-east1.run.app/qa"
+    );
   }
 
   static get observedAttributes() {
@@ -126,10 +129,14 @@ class ChatbotWidget extends HTMLElement {
             .map(
               (c) => `
             <li class="ref-item">
-              <div class="ref-source">${escapeHtml(citationSourceLabel(c.source))}</div>
+              <div class="ref-source">${escapeHtml(
+                citationSourceLabel(c.source)
+              )}</div>
               ${
                 c.snippet
-                  ? `<blockquote class="ref-snippet">${escapeHtml(c.snippet)}</blockquote>`
+                  ? `<blockquote class="ref-snippet">${escapeHtml(
+                      c.snippet
+                    )}</blockquote>`
                   : ""
               }
             </li>
@@ -141,7 +148,9 @@ class ChatbotWidget extends HTMLElement {
     `
       : "";
 
-    return `<div class="bot-msg">${text ? `<div class="bot-answer">${text}</div>` : ""}${refsHtml}</div>`;
+    return `<div class="bot-msg">${
+      text ? `<div class="bot-answer">${text}</div>` : ""
+    }${refsHtml}</div>`;
   }
 
   bindRefsToggles() {
