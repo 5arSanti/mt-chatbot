@@ -76,7 +76,6 @@ class ChatbotWidget extends HTMLElement {
 
       const response = await fetch(this.apiUrl, {
         method: "POST",
-        mode: "cors",
         headers: {
           "Content-Type": "application/json",
         },
