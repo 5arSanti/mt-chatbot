@@ -31,7 +31,7 @@ class ChatbotWidget extends HTMLElement {
   }
 
   get apiUrl() {
-    return this.getAttribute("api-url");
+    return this.getAttribute("api-url") ?? "https://course-storage-api-qdrant-1018797915827.us-east1.run.app/qa";
   }
 
   static get observedAttributes() {
