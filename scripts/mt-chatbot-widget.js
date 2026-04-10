@@ -362,7 +362,7 @@
 .mt-chat-toolbar {
   position: absolute;
   top: 5px;
-  right: 20px;
+  left: 8px;
   flex-shrink: 0;
   display: flex;
   justify-content: flex-end;
