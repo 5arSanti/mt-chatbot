@@ -311,7 +311,7 @@
   grid-template-columns: 40px 1fr 40px;
   align-items: center;
   gap: 6px;
-  padding: 15px 16px;
+  padding: 8px 16px;
   background: ${t.primary};
   color: #fff;
   flex-shrink: 0;
@@ -633,13 +633,14 @@
 }
 
 .ref-snippet {
+  width: 100%;
   margin: 0;
   padding: 0 0 0 12px;
   border-left: 2px solid #cbd5e1;
   font-size: 14px;
   line-height: 1.45;
   color: ${t.text};
-  white-space: pre-wrap;
+  white-space: break-spaces;
   font-family: 'Roboto', sans-serif;
   font-weight: 400;
 }
@@ -1163,10 +1164,6 @@
           <div class="mt-skel-line mt-skel-line--short"></div>
           <div class="mt-skel-line mt-skel-line--med" style="margin-top:14px;"></div>
           <div class="mt-skel-line mt-skel-line--short"></div>
-          <div class="mt-history-loader-foot" style="flex-direction:column;padding:12px;">
-            <span class="mt-spin"></span>
-            <span style="font-size:11px;margin-top:6px;">Cargando…</span>
-          </div>
         </div>`;
       }
       if (!this.state.historyLoaded || this.state.historyItems.length === 0) {
