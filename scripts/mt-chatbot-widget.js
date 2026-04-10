@@ -103,6 +103,16 @@
     return keys.map((dayKey) => ({ dayKey, items: map.get(dayKey) }));
   }
 
+  /** Primera pregunta del día (cronológicamente). */
+  function getFirstQuestionOfDay(items) {
+    const sorted = [...items].sort(
+      (a, b) =>
+        new Date(a.asked_at_colombia || 0) -
+        new Date(b.asked_at_colombia || 0)
+    );
+    return sorted[0];
+  }
+
   function mapCitationsFromApi(list) {
     if (!Array.isArray(list)) return [];
     return list.map((c) => ({
@@ -113,6 +123,27 @@
           ? Number(c.page_number)
           : null,
     }));
+  }
+
+  /** Construye mensajes chat ordenados por hora (toda la conversación del día). */
+  function dayItemsToMessages(items) {
+    const sorted = [...items].sort(
+      (a, b) =>
+        new Date(a.asked_at_colombia || 0) -
+        new Date(b.asked_at_colombia || 0)
+    );
+    const messages = [];
+    for (const item of sorted) {
+      const t = new Date(item.asked_at_colombia || Date.now()).getTime();
+      messages.push({ role: "user", text: item.question || "", t });
+      messages.push({
+        role: "bot",
+        text: item.answer || "",
+        citations: mapCitationsFromApi(item.citations),
+        t: t + 1,
+      });
+    }
+    return messages;
   }
 
   // --- Tokens Figma (doc. referencia / historial / MacBook wide) ---------
@@ -276,11 +307,11 @@
 }
 
 .mt-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 15px 20px;
+  gap: 6px;
+  padding: 15px 16px;
   background: ${t.primary};
   color: #fff;
   flex-shrink: 0;
@@ -291,11 +322,19 @@
   font-weight: 700;
   font-size: 19px;
   letter-spacing: -0.02em;
+  text-align: center;
+  justify-self: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 4px;
 }
 
 .mt-header-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 4px;
 }
 
@@ -315,45 +354,6 @@
 
 .mt-icon-btn:hover {
   background: rgba(255,255,255,0.15);
-}
-
-.mt-menu-wrap {
-  position: relative;
-}
-
-.mt-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  min-width: 180px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  border: 1px solid #eee;
-  padding: 6px;
-  z-index: 10;
-  display: none;
-}
-
-.mt-menu.mt-open {
-  display: block;
-}
-
-.mt-menu button {
-  width: 100%;
-  text-align: left;
-  padding: 10px 12px;
-  border: none;
-  background: none;
-  font-size: 14px;
-  font-family: inherit;
-  color: ${t.text};
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.mt-menu button:hover {
-  background: ${t.botBubble};
 }
 
 .mt-body {
@@ -420,10 +420,56 @@
   font-weight: 500;
 }
 
-.mt-loading {
-  padding: 14px;
+.mt-typing-wrap {
+  align-self: flex-start;
+  max-width: 85%;
+  animation: mt-fade-in 0.35s ease;
+}
+
+@keyframes mt-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mt-appear {
+  animation: mt-fade-in 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mt-typing-bubble {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 16px 20px;
+}
+
+.mt-typing {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mt-typing span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${t.textMuted};
+  animation: mt-bounce 1.25s ease-in-out infinite;
+}
+
+.mt-typing span:nth-child(1) { animation-delay: 0s; }
+.mt-typing span:nth-child(2) { animation-delay: 0.2s; }
+.mt-typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes mt-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-7px); opacity: 1; }
+}
+
+.mt-typing-label {
+  margin-left: 10px;
+  font-size: 13px;
   color: ${t.textMuted};
-  font-style: italic;
+  font-weight: 500;
 }
 
 .mt-input-row {
@@ -476,12 +522,55 @@
   border: 1px solid rgba(${t.primaryRgb}, 0.35);
   border-radius: 999px;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
 }
 
 .refs-toggle:hover {
   background: #f5f7ff;
   border-color: var(--mt-primary);
+}
+
+.refs-toggle .refs-chevron {
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 10px;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.refs-toggle[aria-expanded="true"] .refs-chevron {
+  transform: rotate(180deg);
+}
+
+.refs-anim {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.refs-anim.is-open {
+  grid-template-rows: 1fr;
+}
+
+.refs-anim-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.refs-panel-content {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 4px;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.32s ease 0.06s, transform 0.32s cubic-bezier(0.4, 0, 0.2, 1) 0.06s;
+}
+
+.refs-anim.is-open .refs-panel-content {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .refs-count {
@@ -496,13 +585,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.refs-panel {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 .ref-card {
@@ -619,8 +701,14 @@
   border-color: rgba(${t.primaryRgb}, 0.2);
 }
 
-.hist-card.mt-expanded {
-  border-color: rgba(${t.primaryRgb}, 0.35);
+.hist-day-tag {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  color: var(--mt-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
 }
 
 .hist-card-q {
@@ -637,23 +725,9 @@
   color: ${t.textMuted};
 }
 
-.hist-detail {
-  display: none;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #e5e5e5;
-  font-size: 13px;
-  line-height: 1.5;
-  color: ${t.text};
-}
-
-.hist-card.mt-expanded .hist-detail {
-  display: block;
-}
-
-.hist-detail-answer {
-  margin-bottom: 12px;
-  font-family: 'Roboto', sans-serif;
+.hist-card.mt-day-active {
+  border-color: var(--mt-primary);
+  box-shadow: 0 0 0 1px rgba(${t.primaryRgb}, 0.2);
 }
 
 .mt-empty, .mt-error {
@@ -664,6 +738,79 @@
 }
 
 .mt-error { color: #b91c1c; }
+
+.mt-history-loading .mt-skel-block {
+  margin-bottom: 14px;
+}
+
+.mt-skel-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0%,
+    #f8f8f8 40%,
+    #e8e8e8 60%,
+    #f0f0f0 100%
+  );
+  background-size: 200% 100%;
+  animation: mt-shimmer 1.2s ease-in-out infinite;
+  margin-bottom: 10px;
+}
+
+.mt-skel-line--short { width: 55%; }
+.mt-skel-line--med { width: 78%; }
+.mt-skel-line--title {
+  height: 16px;
+  width: 40%;
+  margin-bottom: 16px;
+  border-radius: 8px;
+}
+
+.mt-skel-card {
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  margin-bottom: 12px;
+}
+
+@keyframes mt-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.mt-history-loader-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  color: ${t.textMuted};
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.mt-history-loader-foot .mt-spin {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e5e5e5;
+  border-top-color: ${t.primary};
+  border-radius: 50%;
+  animation: mt-spin 0.7s linear infinite;
+}
+
+@keyframes mt-spin {
+  to { transform: rotate(360deg); }
+}
+
+.mt-sidebar-skel {
+  padding: 8px;
+}
+
+.mt-sidebar-skel .mt-skel-line {
+  margin-bottom: 8px;
+}
 `;
   }
 
@@ -679,14 +826,12 @@
         messages: [],
         expanded: false,
         view: "chat",
-        menuOpen: false,
         historyLoading: false,
         historyLoaded: false,
         historyItems: [],
         historyError: null,
-        expandedHistoryKey: null,
+        selectedDayKey: null,
       };
-      this._boundDocClick = this._onDocumentClick.bind(this);
     }
 
     get apiUrl() {
@@ -727,27 +872,10 @@
       this.render();
     }
 
-    disconnectedCallback() {
-      document.removeEventListener("click", this._boundDocClick);
-    }
-
-    _onDocumentClick(e) {
-      if (!this.state.isOpen || !this.state.menuOpen) return;
-      const path = e.composedPath();
-      if (!path.includes(this)) {
-        this.state.menuOpen = false;
-        this.render();
-      }
-    }
+    disconnectedCallback() {}
 
     toggleChat() {
       this.state.isOpen = !this.state.isOpen;
-      if (!this.state.isOpen) {
-        this.state.menuOpen = false;
-        document.removeEventListener("click", this._boundDocClick);
-      } else {
-        document.addEventListener("click", this._boundDocClick);
-      }
       this.render();
     }
 
@@ -759,16 +887,19 @@
       this.render();
     }
 
-    toggleMenu(e) {
-      e.stopPropagation();
-      this.state.menuOpen = !this.state.menuOpen;
-      this.render();
-    }
-
     openHistoryView() {
-      this.state.menuOpen = false;
       this.state.view = "history";
       this.loadHistory();
+    }
+
+    loadDayIntoChat(dayKey) {
+      const groups = groupHistoryByDay(this.state.historyItems);
+      const g = groups.find((x) => x.dayKey === dayKey);
+      if (!g) return;
+      this.state.messages = dayItemsToMessages(g.items);
+      this.state.selectedDayKey = dayKey;
+      this.state.view = "chat";
+      this.render();
     }
 
     backToChat() {
@@ -780,6 +911,8 @@
       if (!this.studentId || !this.courseId) {
         this.state.historyError = "Faltan student-id o course-id";
         this.state.historyLoaded = true;
+        this.state.historyLoading = false;
+        this.render();
         return;
       }
       this.state.historyLoading = true;
@@ -822,6 +955,7 @@
       const question = input?.value?.trim();
       if (!question) return;
 
+      this.state.selectedDayKey = null;
       this.state.messages.push({ role: "user", text: question, t: Date.now() });
       this.state.loading = true;
       this.render();
@@ -858,7 +992,7 @@
       this.render();
     }
 
-    renderBotMessage(m, msgIndex) {
+    renderBotMessage(m, msgIndex, latest = false) {
       const text = escapeHtml(m.text);
       const citations = m.citations || [];
       const hasRefs = citations.length > 0;
@@ -867,10 +1001,13 @@
       const refsBlock = hasRefs
         ? `
         <button type="button" class="refs-toggle" aria-expanded="false" aria-controls="${panelId}">
+          <span class="refs-chevron" aria-hidden="true">▼</span>
           Referencias
           <span class="refs-count">${citations.length}</span>
         </button>
-        <div class="refs-panel" id="${panelId}" hidden>
+        <div class="refs-anim" id="${panelId}">
+          <div class="refs-anim-inner">
+            <div class="refs-panel-content">
           ${citations
             .map(
               (c) => `
@@ -899,11 +1036,13 @@
           `
             )
             .join("")}
+            </div>
+          </div>
         </div>
       `
         : "";
 
-      return `<div class="mt-msg-bot-wrap">
+      return `<div class="mt-msg-bot-wrap${latest ? " mt-appear" : ""}">
         <div class="mt-msg-bot">
           ${text ? `<div class="bot-answer">${text}</div>` : ""}
           ${refsBlock}
@@ -912,35 +1051,75 @@
     }
 
     renderMessages() {
-      const rows = this.state.messages.map((m, i) => {
+      const msgs = this.state.messages;
+      const lastIdx = msgs.length - 1;
+      const rows = msgs.map((m, i) => {
+        const latest = i === lastIdx;
         if (m.role === "user") {
           const time = formatTimeColombia(
             m.t ? new Date(m.t).toISOString() : undefined
           );
-          return `<div class="mt-msg-user-wrap">
+          return `<div class="mt-msg-user-wrap${latest ? " mt-appear" : ""}">
             <div class="mt-msg-user">${escapeHtml(m.text)}</div>
             ${
               time ? `<span class="mt-msg-time">${escapeHtml(time)}</span>` : ""
             }
           </div>`;
         }
-        return this.renderBotMessage(m, i);
+        return this.renderBotMessage(m, i, latest);
       });
       return rows.join("");
     }
 
+    renderHistoryLoadingView() {
+      const cardSkel = `
+        <div class="mt-skel-card">
+          <div class="mt-skel-line mt-skel-line--med"></div>
+          <div class="mt-skel-line mt-skel-line--short"></div>
+        </div>`;
+      return `<div class="mt-history-view">
+        <div class="mt-history-head">
+          <button type="button" class="mt-icon-btn" data-action="history-back" aria-label="Volver" style="color:#0421d1;background:#f5f5f5;">
+            ${svgChevronLeft()}
+          </button>
+          <h2>Tu historial</h2>
+        </div>
+        <div class="mt-history-scroll mt-history-loading">
+          <div class="mt-skel-line mt-skel-line--title"></div>
+          ${cardSkel}${cardSkel}${cardSkel}${cardSkel}
+        </div>
+        <div class="mt-history-loader-foot">
+          <span class="mt-spin" aria-hidden="true"></span>
+          <span>Cargando conversaciones…</span>
+        </div>
+      </div>`;
+    }
+
     renderHistoryFull() {
       if (this.state.historyLoading) {
-        return `<div class="mt-history-view"><div class="mt-empty">Cargando historial…</div></div>`;
+        return this.renderHistoryLoadingView();
       }
       if (this.state.historyError) {
-        return `<div class="mt-history-view"><div class="mt-error">${escapeHtml(
+        return `<div class="mt-history-view"><div class="mt-history-head">
+          <button type="button" class="mt-icon-btn" data-action="history-back" aria-label="Volver" style="color:#0421d1;background:#f5f5f5;">
+            ${svgChevronLeft()}
+          </button>
+          <h2>Tu historial</h2>
+        </div><div class="mt-error" style="padding:24px;">${escapeHtml(
           this.state.historyError
         )}</div></div>`;
       }
       const groups = groupHistoryByDay(this.state.historyItems);
       if (groups.length === 0) {
-        return `<div class="mt-history-view"><div class="mt-empty">No hay consultas recientes.</div></div>`;
+        return `<div class="mt-history-view">
+        <div class="mt-history-head">
+          <button type="button" class="mt-icon-btn" data-action="history-back" aria-label="Volver" style="color:#0421d1;background:#f5f5f5;">
+            ${svgChevronLeft()}
+          </button>
+          <h2>Tu historial</h2>
+        </div>
+        <div class="mt-empty">No hay consultas recientes.</div>
+        </div>`;
       }
 
       return `<div class="mt-history-view">
@@ -953,59 +1132,22 @@
         <div class="mt-history-scroll">
           ${groups
             .map(({ dayKey, items }) => {
+              const first = getFirstQuestionOfDay(items);
               const label = formatDayHeader(dayKey);
-              const cards = items
-                .map((item) => {
-                  const key = `${item.asked_at_colombia}|${item.question}`;
-                  const expanded = this.state.expandedHistoryKey === key;
-                  const time = formatTimeColombia(item.asked_at_colombia);
-                  const cites = mapCitationsFromApi(item.citations);
-                  const citeHtml =
-                    cites.length > 0
-                      ? cites
-                          .map(
-                            (c) => `
-                    <div class="ref-card" style="margin-top:8px;">
-                      <div class="ref-card-top">
-                        <span class="ref-doc-icon">${svgDoc()}</span>
-                        <span class="ref-name">${escapeHtml(
-                          citationSourceLabel(c.source)
-                        )}</span>
-                        ${
-                          c.page_number != null && !Number.isNaN(c.page_number)
-                            ? `<span class="ref-page">Pág. ${c.page_number}</span>`
-                            : ""
-                        }
-                      </div>
-                      ${
-                        c.snippet
-                          ? `<blockquote class="ref-snippet">${escapeHtml(
-                              c.snippet
-                            )}</blockquote>`
-                          : ""
-                      }
-                    </div>`
-                          )
-                          .join("")
-                      : "";
-                  return `
-                  <div class="hist-card ${
-                    expanded ? "mt-expanded" : ""
-                  }" data-history-key="${escapeHtml(key)}">
-                    <div class="hist-card-q">${escapeHtml(item.question)}</div>
-                    <div class="hist-meta">${escapeHtml(time)}</div>
-                    <div class="hist-detail">
-                      <div class="hist-detail-answer">${escapeHtml(
-                        item.answer || ""
-                      )}</div>
-                      ${citeHtml}
-                    </div>
-                  </div>`;
-                })
-                .join("");
-              return `<div class="hist-day-block">
-                <div class="hist-day-label">${escapeHtml(label)}</div>
-                ${cards}
+              const n = items.length;
+              const countLabel =
+                n === 1 ? "1 pregunta" : `${n} preguntas`;
+              const active = this.state.selectedDayKey === dayKey;
+              if (!first) return "";
+              return `
+              <div class="hist-card ${
+                active ? "mt-day-active" : ""
+              }" data-day-key="${escapeHtml(dayKey)}" role="button" tabindex="0">
+                <div class="hist-day-tag">${escapeHtml(label)}</div>
+                <div class="hist-card-q">${escapeHtml(first.question || "")}</div>
+                <div class="hist-meta">${escapeHtml(
+                  countLabel
+                )} · Abrir en el chat</div>
               </div>`;
             })
             .join("")}
@@ -1014,32 +1156,38 @@
     }
 
     renderSidebarHistory() {
+      if (this.state.historyLoading) {
+        return `<div class="mt-sidebar-skel">
+          <div class="mt-skel-line mt-skel-line--title" style="height:10px;width:70%;"></div>
+          <div class="mt-skel-line mt-skel-line--med"></div>
+          <div class="mt-skel-line mt-skel-line--short"></div>
+          <div class="mt-skel-line mt-skel-line--med" style="margin-top:14px;"></div>
+          <div class="mt-skel-line mt-skel-line--short"></div>
+          <div class="mt-history-loader-foot" style="flex-direction:column;padding:12px;">
+            <span class="mt-spin"></span>
+            <span style="font-size:11px;margin-top:6px;">Cargando…</span>
+          </div>
+        </div>`;
+      }
       if (!this.state.historyLoaded || this.state.historyItems.length === 0) {
-        return `<div class="mt-empty" style="padding:16px;font-size:12px;">${
-          this.state.historyLoading ? "Cargando…" : "Sin historial"
-        }</div>`;
+        return `<div class="mt-empty" style="padding:16px;font-size:12px;">Sin historial</div>`;
       }
       const groups = groupHistoryByDay(this.state.historyItems);
       return groups
         .map(({ dayKey, items }) => {
           const label = formatDayHeader(dayKey);
-          const cards = items
-            .map((item) => {
-              const key = `${item.asked_at_colombia}|${item.question}`;
-              const time = formatTimeColombia(item.asked_at_colombia);
-              const active = this.state.expandedHistoryKey === key;
-              return `
-              <div class="mt-sidebar-card ${
-                active ? "mt-active" : ""
-              }" data-history-key="${escapeHtml(key)}">
-                <div class="mt-sidebar-q">${escapeHtml(item.question)}</div>
-                <div class="hist-time">${escapeHtml(time)}</div>
-              </div>`;
-            })
-            .join("");
+          const first = getFirstQuestionOfDay(items);
+          const n = items.length;
+          const active = this.state.selectedDayKey === dayKey;
+          if (!first) return "";
           return `<div class="mt-sidebar-day">
             <div class="hist-day-label">${escapeHtml(label)}</div>
-            ${cards}
+            <div class="mt-sidebar-card ${
+              active ? "mt-active" : ""
+            }" data-day-key="${escapeHtml(dayKey)}">
+              <div class="mt-sidebar-q">${escapeHtml(first.question || "")}</div>
+              <div class="hist-time">${n === 1 ? "1 pregunta" : `${n} preguntas`}</div>
+            </div>
           </div>`;
         })
         .join("");
@@ -1048,23 +1196,27 @@
     bindRefsToggles() {
       this.shadowRoot.querySelectorAll(".refs-toggle").forEach((btn) => {
         btn.onclick = () => {
-          const panel = btn.nextElementSibling;
-          if (!panel?.classList.contains("refs-panel")) return;
-          const open = panel.hidden;
-          panel.hidden = !open;
+          const anim = btn.nextElementSibling;
+          if (!anim?.classList.contains("refs-anim")) return;
+          const open = !anim.classList.contains("is-open");
+          anim.classList.toggle("is-open", open);
           btn.setAttribute("aria-expanded", String(open));
         };
       });
     }
 
-    bindHistoryCards() {
-      this.shadowRoot.querySelectorAll("[data-history-key]").forEach((el) => {
-        el.onclick = () => {
-          const key = el.getAttribute("data-history-key");
-          if (!key) return;
-          this.state.expandedHistoryKey =
-            this.state.expandedHistoryKey === key ? null : key;
-          this.render();
+    bindHistoryDayCards() {
+      const onActivate = (el) => {
+        const k = el.getAttribute("data-day-key");
+        if (k) this.loadDayIntoChat(k);
+      };
+      this.shadowRoot.querySelectorAll("[data-day-key]").forEach((el) => {
+        el.onclick = () => onActivate(el);
+        el.onkeydown = (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onActivate(el);
+          }
         };
       });
     }
@@ -1077,9 +1229,6 @@
           e.stopPropagation();
           this.toggleChat();
         });
-      root
-        .querySelector("[data-action='menu-toggle']")
-        ?.addEventListener("click", (e) => this.toggleMenu(e));
       root
         .querySelector("[data-action='open-history']")
         ?.addEventListener("click", (e) => {
@@ -1105,11 +1254,7 @@
       });
 
       this.bindRefsToggles();
-      this.bindHistoryCards();
-
-      this.shadowRoot
-        .querySelector(".mt-menu")
-        ?.addEventListener("click", (e) => e.stopPropagation());
+      this.bindHistoryDayCards();
     }
 
     render() {
@@ -1133,7 +1278,12 @@
             ${this.renderMessages()}
             ${
               this.state.loading
-                ? `<div class="mt-loading">Escribiendo…</div>`
+                ? `<div class="mt-typing-wrap" aria-live="polite" aria-label="El asistente está escribiendo">
+                <div class="mt-msg-bot mt-typing-bubble">
+                  <div class="mt-typing"><span></span><span></span><span></span></div>
+                  <span class="mt-typing-label">Escribiendo…</span>
+                </div>
+              </div>`
                 : ""
             }
           </div>
@@ -1166,18 +1316,11 @@
                 ? mainContent
                 : `
             <header class="mt-header">
+              <button type="button" class="mt-icon-btn" data-action="open-history" aria-label="Historial">
+                ${svgHistory()}
+              </button>
               <span class="mt-header-title">${escapeHtml(this.title)}</span>
               <div class="mt-header-actions">
-                <div class="mt-menu-wrap">
-                  <button type="button" class="mt-icon-btn" data-action="menu-toggle" aria-label="Menú" aria-haspopup="true">
-                    ${svgDots()}
-                  </button>
-                  <div class="mt-menu ${
-                    this.state.menuOpen ? "mt-open" : ""
-                  }" role="menu">
-                    <button type="button" data-action="open-history" role="menuitem">Historial</button>
-                  </div>
-                </div>
                 <button type="button" class="mt-icon-btn" data-action="expand-toggle" aria-label="${
                   expanded ? "Restaurar tamaño" : "Ampliar"
                 }">
@@ -1212,8 +1355,8 @@
     return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>`;
   }
 
-  function svgDots() {
-    return `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="18" r="2"/></svg>`;
+  function svgHistory() {
+    return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>`;
   }
 
   function svgMaximize() {
