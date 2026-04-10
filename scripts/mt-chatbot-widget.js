@@ -63,6 +63,20 @@
     }).format(new Date(y, m - 1, d));
   }
 
+  /** Fecha corta para filas compactas del historial. */
+  function formatCompactDate(dayKey) {
+    const today = bogotaDateKey(new Date());
+    const [y, m, d] = dayKey.split("-").map(Number);
+    if (!y || !m || !d) return dayKey;
+    if (dayKey === today) return "Hoy";
+    if (dayKey === dayKeyMinusOne(today)) return "Ayer";
+    return new Intl.DateTimeFormat("es-CO", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(y, m - 1, d));
+  }
+
   function formatTimeColombia(iso) {
     if (!iso) return "";
     const d = new Date(iso);
@@ -134,13 +148,15 @@
     );
     const messages = [];
     for (const item of sorted) {
-      const t = new Date(item.asked_at_colombia || Date.now()).getTime();
+      const asked = item.asked_at_colombia || "";
+      const t = new Date(asked || Date.now()).getTime();
       messages.push({ role: "user", text: item.question || "", t });
       messages.push({
         role: "bot",
         text: item.answer || "",
         citations: mapCitationsFromApi(item.citations),
         t: t + 1,
+        responseAt: asked,
       });
     }
     return messages;
@@ -245,57 +261,30 @@
 .mt-sidebar-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 12px 16px;
+  padding: 10px 0px;
 }
 
-.mt-sidebar .hist-day-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--mt-primary);
-  margin: 12px 0 8px;
-  font-family: 'Inter', sans-serif;
+.hist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  margin: 0;
 }
 
-.mt-sidebar .hist-day-label:first-child { margin-top: 0; }
-
-.mt-sidebar-card {
-  padding: 10px 12px;
+.hist-row {
+  padding: 8px 10px;
   border-radius: 8px;
-  background: ${t.botBubble};
-  margin-bottom: 8px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: border-color 0.15s, background 0.15s;
 }
 
-.mt-sidebar-card:hover {
-  border-color: rgba(${t.primaryRgb}, 0.25);
-}
-
-.mt-sidebar-card.mt-active {
-  background: var(--mt-primary);
-  color: #fff;
-}
-
-.mt-sidebar-card.mt-active .hist-time {
-  color: rgba(255,255,255,0.85);
-}
-
-.mt-sidebar-q {
+.hist-row-q {
   font-size: 11px;
-  font-weight: 500;
-  line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  -webkit-line-clamp: 2;
 }
 
-.mt-sidebar .hist-time {
+.hist-row-meta {
   font-size: 10px;
-  margin-top: 6px;
-  color: ${t.textMuted};
-  font-weight: 500;
+  gap: 6px;
 }
 
 .mt-main {
@@ -360,8 +349,40 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
   min-height: 0;
   background: #fff;
+}
+
+.mt-body .mt-new-chat-bg {
+  background: #fff;
+  border-radius: 8px;
+}
+
+.mt-chat-toolbar {
+  position: absolute;
+  top: 5px;
+  right: 20px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mt-btn-new-chat {
+  border: none;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  color: var(--mt-primary);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s;
+  background: #fff;
+}
+
+.mt-btn-new-chat:hover {
+  background: rgba(${t.primaryRgb}, 0.08);
 }
 
 .mt-messages {
@@ -404,6 +425,14 @@
   align-self: flex-start;
   max-width: 100%;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.mt-msg-time--bot {
+  margin-top: 4px;
+  margin-left: 2px;
 }
 
 .mt-msg-bot {
@@ -673,62 +702,79 @@
 .mt-history-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 18px 20px;
+  padding: 0;
 }
 
-.hist-day-label {
-  font-size: 18px;
-  font-weight: 600;
-  font-family: 'Inter', sans-serif;
-  color: var(--mt-primary);
-  margin: 20px 0 12px;
-}
-
-.hist-day-label:first-child {
-  margin-top: 0;
-}
-
-.hist-card {
-  border-radius: 8px;
-  padding: 16px 18px;
-  background: ${t.botBubble};
-  margin-bottom: 10px;
-  border: 1px solid transparent;
+.hist-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eee;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  text-align: left;
+  background: #fff;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.hist-card:hover {
-  border-color: rgba(${t.primaryRgb}, 0.2);
+.hist-row:hover:not(.mt-day-active) {
+  background: #f7f8fc;
 }
 
-.hist-day-tag {
-  font-size: 11px;
-  font-weight: 700;
-  font-family: 'Inter', sans-serif;
-  color: var(--mt-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 8px;
-}
-
-.hist-card-q {
+.hist-row-q {
   font-size: 13px;
   font-weight: 500;
+  font-family: 'Roboto', sans-serif;
   color: ${t.text};
-  line-height: 1.4;
-  margin-bottom: 6px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.hist-meta {
-  font-size: 10px;
+.hist-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 11px;
   font-weight: 500;
+  font-family: 'Inter', sans-serif;
   color: ${t.textMuted};
 }
 
-.hist-card.mt-day-active {
-  border-color: var(--mt-primary);
-  box-shadow: 0 0 0 1px rgba(${t.primaryRgb}, 0.2);
+.hist-row-meta .hist-row-date {
+  color: ${t.textMuted};
+}
+
+.hist-row-meta .hist-row-count {
+  color: ${t.textMuted};
+}
+
+.hist-row-sep {
+  opacity: 0.55;
+  user-select: none;
+}
+
+.hist-row.mt-day-active {
+  background: var(--mt-primary);
+}
+
+.hist-row.mt-day-active .hist-row-q,
+.hist-row.mt-day-active .hist-row-meta,
+.hist-row.mt-day-active .hist-row-date,
+.hist-row.mt-day-active .hist-row-count {
+  color: #fff;
+}
+
+.hist-row.mt-day-active .hist-row-count {
+  opacity: 0.95;
+}
+
+.hist-row.mt-day-active .hist-row-sep {
+  color: #fff;
+  opacity: 0.85;
 }
 
 .mt-empty, .mt-error {
@@ -908,6 +954,13 @@
       this.render();
     }
 
+    newChat() {
+      this.state.messages = [];
+      this.state.selectedDayKey = null;
+      this.state.loading = false;
+      this.render();
+    }
+
     async loadHistory() {
       if (!this.studentId || !this.courseId) {
         this.state.historyError = "Faltan student-id o course-id";
@@ -1043,11 +1096,22 @@
       `
         : "";
 
+      const botTime = m.responseAt
+        ? formatTimeColombia(m.responseAt)
+        : "";
+
       return `<div class="mt-msg-bot-wrap${latest ? " mt-appear" : ""}">
         <div class="mt-msg-bot">
           ${text ? `<div class="bot-answer">${text}</div>` : ""}
           ${refsBlock}
         </div>
+        ${
+          botTime
+            ? `<span class="mt-msg-time mt-msg-time--bot">${escapeHtml(
+                botTime
+              )}</span>`
+            : ""
+        }
       </div>`;
     }
 
@@ -1085,7 +1149,7 @@
           </button>
           <h2>Tu historial</h2>
         </div>
-        <div class="mt-history-scroll mt-history-loading">
+        <div class="mt-history-scroll mt-history-loading" style="padding:12px 14px;">
           <div class="mt-skel-line mt-skel-line--title"></div>
           ${cardSkel}${cardSkel}${cardSkel}${cardSkel}
         </div>
@@ -1130,29 +1194,30 @@
           </button>
           <h2>Tu historial</h2>
         </div>
-        <div class="mt-history-scroll">
+        <ul class="hist-list">
           ${groups
             .map(({ dayKey, items }) => {
               const first = getFirstQuestionOfDay(items);
-              const label = formatDayHeader(dayKey);
               const n = items.length;
               const countLabel =
                 n === 1 ? "1 pregunta" : `${n} preguntas`;
+              const dateLabel = formatCompactDate(dayKey);
               const active = this.state.selectedDayKey === dayKey;
               if (!first) return "";
               return `
-              <div class="hist-card ${
+              <li class="hist-row ${
                 active ? "mt-day-active" : ""
               }" data-day-key="${escapeHtml(dayKey)}" role="button" tabindex="0">
-                <div class="hist-day-tag">${escapeHtml(label)}</div>
-                <div class="hist-card-q">${escapeHtml(first.question || "")}</div>
-                <div class="hist-meta">${escapeHtml(
-                  countLabel
-                )} · Abrir en el chat</div>
-              </div>`;
+                <span class="hist-row-q">${escapeHtml(first.question || "")}</span>
+                <span class="hist-row-meta">
+                  <span class="hist-row-date">${escapeHtml(dateLabel)}</span>
+                  <span class="hist-row-sep" aria-hidden="true">·</span>
+                  <span class="hist-row-count">${escapeHtml(countLabel)}</span>
+                </span>
+              </li>`;
             })
             .join("")}
-        </div>
+        </ul>
       </div>`;
     }
 
@@ -1170,24 +1235,28 @@
         return `<div class="mt-empty" style="padding:16px;font-size:12px;">Sin historial</div>`;
       }
       const groups = groupHistoryByDay(this.state.historyItems);
-      return groups
+      return `<ul class="hist-list">${groups
         .map(({ dayKey, items }) => {
-          const label = formatDayHeader(dayKey);
           const first = getFirstQuestionOfDay(items);
           const n = items.length;
+          const countLabel =
+            n === 1 ? "1 pregunta" : `${n} preguntas`;
+          const dateLabel = formatCompactDate(dayKey);
           const active = this.state.selectedDayKey === dayKey;
           if (!first) return "";
-          return `<div class="mt-sidebar-day">
-            <div class="hist-day-label">${escapeHtml(label)}</div>
-            <div class="mt-sidebar-card ${
-              active ? "mt-active" : ""
-            }" data-day-key="${escapeHtml(dayKey)}">
-              <div class="mt-sidebar-q">${escapeHtml(first.question || "")}</div>
-              <div class="hist-time">${n === 1 ? "1 pregunta" : `${n} preguntas`}</div>
-            </div>
-          </div>`;
+          return `
+            <li class="hist-row ${
+              active ? "mt-day-active" : ""
+            }" data-day-key="${escapeHtml(dayKey)}" role="button" tabindex="0">
+              <span class="hist-row-q">${escapeHtml(first.question || "")}</span>
+              <span class="hist-row-meta">
+                <span class="hist-row-date">${escapeHtml(dateLabel)}</span>
+                <span class="hist-row-sep" aria-hidden="true">·</span>
+                <span class="hist-row-count">${escapeHtml(countLabel)}</span>
+              </span>
+            </li>`;
         })
-        .join("");
+        .join("")}</ul>`;
     }
 
     bindRefsToggles() {
@@ -1244,6 +1313,12 @@
           e.stopPropagation();
           this.backToChat();
         });
+      root
+        .querySelector("[data-action='new-chat']")
+        ?.addEventListener("click", (e) => {
+          e.stopPropagation();
+          this.newChat();
+        });
 
       root.querySelector("#mt-form")?.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -1271,6 +1346,9 @@
         view === "history"
           ? this.renderHistoryFull()
           : `<div class="mt-body">
+          <div class="mt-chat-toolbar mt-new-chat-bg">
+            <button type="button" class="mt-btn-new-chat" data-action="new-chat">Nuevo chat</button>
+          </div>
           <div class="mt-messages" id="mt-messages">
             ${this.renderMessages()}
             ${
