@@ -59,7 +59,7 @@ class ChatbotWidget extends HTMLElement {
   }
 
   get security() {
-    return "pAc987RLg35!xBR";
+    return "";
   }
 
   async sendMessage() {
@@ -81,7 +81,7 @@ class ChatbotWidget extends HTMLElement {
         question,
       };
 
-      const response = await fetch(`${this.apiUrl}?security=${this.security}`, {
+      const response = await fetch(`${this.apiUrl}`, {
         method: "POST",
         mode: "cors",
         headers: {
