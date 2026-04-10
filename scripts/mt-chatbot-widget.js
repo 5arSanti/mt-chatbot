@@ -328,8 +328,8 @@
 }
 
 .mt-icon-btn {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border: none;
   border-radius: 8px;
   background: transparent;
