@@ -139,6 +139,12 @@
     }));
   }
 
+  function normalizeLikeValue(v) {
+    if (v === "1" || v === 1 || v === true) return "1";
+    if (v === "0" || v === 0 || v === false) return "0";
+    return null;
+  }
+
   /** Construye mensajes chat ordenados por hora (toda la conversación del día). */
   function dayItemsToMessages(items) {
     const sorted = [...items].sort(
@@ -157,6 +163,8 @@
         citations: mapCitationsFromApi(item.citations),
         t: t + 1,
         responseAt: asked,
+        requestId: item.request_id || null,
+        like: normalizeLikeValue(item.like),
       });
     }
     return messages;
@@ -442,6 +450,59 @@
   font-size: 15px;
   line-height: 1.5;
   color: ${t.text};
+}
+
+.mt-feedback {
+  margin-top: 10px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.mt-msg-bot-wrap:hover .mt-feedback,
+.mt-msg-bot-wrap:focus-within .mt-feedback,
+.mt-feedback.has-selection {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mt-feedback-btn {
+  border: 1px solid #d7defc;
+  background: #fff;
+  color: var(--mt-primary);
+  border-radius: 999px;
+  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+.mt-feedback-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.mt-feedback-btn:hover {
+  background: #eef2ff;
+  border-color: #b8c6ff;
+}
+
+.mt-feedback-btn.is-active {
+  color: #fff;
+  border-color: var(--mt-primary);
+  background: var(--mt-primary);
+}
+
+.mt-feedback-btn.is-busy {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .mt-msg-bot .bot-answer {
@@ -752,6 +813,18 @@
   color: ${t.textMuted};
 }
 
+.hist-row-like {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hist-row-like svg {
+  width: 12px;
+  height: 12px;
+}
+
 .hist-row-sep {
   opacity: 0.55;
   user-select: none;
@@ -898,6 +971,10 @@
       return `${this.apiBaseUrl}/history`;
     }
 
+    get likeUrl() {
+      return `${this.apiBaseUrl}/like`;
+    }
+
     /** "GET" | "POST" — si tu API usa GET con query params, pon history-method="GET". */
     get historyMethod() {
       return (this.getAttribute("history-method") || "POST").toUpperCase();
@@ -947,6 +1024,36 @@
       this.state.selectedDayKey = dayKey;
       this.state.view = "chat";
       this.render();
+    }
+
+    async setLikeForMessage(msgIndex, likeValue) {
+      const msg = this.state.messages[msgIndex];
+      if (!msg || msg.role !== "bot" || !msg.requestId) return;
+      if (msg.likeLoading) return;
+
+      const nextLike = msg.like === likeValue ? null : likeValue;
+      const prevLike = msg.like ?? null;
+      msg.like = nextLike;
+      msg.likeLoading = true;
+      this.render();
+
+      try {
+        const response = await fetch(this.likeUrl, {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            request_id: msg.requestId,
+            like: nextLike,
+          }),
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      } catch {
+        msg.like = prevLike;
+      } finally {
+        msg.likeLoading = false;
+        this.render();
+      }
     }
 
     backToChat() {
@@ -1033,6 +1140,8 @@
           text: data.answer || "Sin respuesta",
           citations,
           t: Date.now(),
+          requestId: data.request_id || null,
+          like: normalizeLikeValue(data.like),
         });
       } catch {
         this.state.messages.push({
@@ -1099,11 +1208,30 @@
       const botTime = m.responseAt
         ? formatTimeColombia(m.responseAt)
         : "";
+      const showFeedback = Boolean(m.requestId);
+      const feedbackClass = m.like != null ? " has-selection" : "";
+      const likeBusyClass = m.likeLoading ? " is-busy" : "";
 
       return `<div class="mt-msg-bot-wrap${latest ? " mt-appear" : ""}">
         <div class="mt-msg-bot">
           ${text ? `<div class="bot-answer">${text}</div>` : ""}
           ${refsBlock}
+          ${
+            showFeedback
+              ? `<div class="mt-feedback${feedbackClass}">
+              <button type="button" class="mt-feedback-btn${
+                m.like === "1" ? " is-active" : ""
+              }${likeBusyClass}" data-like-value="1" data-msg-index="${msgIndex}" aria-label="Me gusta">
+                ${svgThumbUp()} <span>Me gusta</span>
+              </button>
+              <button type="button" class="mt-feedback-btn${
+                m.like === "0" ? " is-active" : ""
+              }${likeBusyClass}" data-like-value="0" data-msg-index="${msgIndex}" aria-label="No me gusta">
+                ${svgThumbDown()} <span>No me gusta</span>
+              </button>
+            </div>`
+              : ""
+          }
         </div>
         ${
           botTime
@@ -1203,6 +1331,7 @@
                 n === 1 ? "1 pregunta" : `${n} preguntas`;
               const dateLabel = formatCompactDate(dayKey);
               const active = this.state.selectedDayKey === dayKey;
+              const dayLike = normalizeLikeValue(first?.like);
               if (!first) return "";
               return `
               <li class="hist-row ${
@@ -1213,6 +1342,15 @@
                   <span class="hist-row-date">${escapeHtml(dateLabel)}</span>
                   <span class="hist-row-sep" aria-hidden="true">·</span>
                   <span class="hist-row-count">${escapeHtml(countLabel)}</span>
+                  ${
+                    dayLike
+                      ? `<span class="hist-row-like" aria-label="${
+                          dayLike === "1" ? "Con me gusta" : "Con no me gusta"
+                        }">${
+                          dayLike === "1" ? svgThumbUp() : svgThumbDown()
+                        }</span>`
+                      : ""
+                  }
                 </span>
               </li>`;
             })
@@ -1243,6 +1381,7 @@
             n === 1 ? "1 pregunta" : `${n} preguntas`;
           const dateLabel = formatCompactDate(dayKey);
           const active = this.state.selectedDayKey === dayKey;
+          const dayLike = normalizeLikeValue(first?.like);
           if (!first) return "";
           return `
             <li class="hist-row ${
@@ -1253,6 +1392,13 @@
                 <span class="hist-row-date">${escapeHtml(dateLabel)}</span>
                 <span class="hist-row-sep" aria-hidden="true">·</span>
                 <span class="hist-row-count">${escapeHtml(countLabel)}</span>
+                ${
+                  dayLike
+                    ? `<span class="hist-row-like" aria-label="${
+                        dayLike === "1" ? "Con me gusta" : "Con no me gusta"
+                      }">${dayLike === "1" ? svgThumbUp() : svgThumbDown()}</span>`
+                    : ""
+                }
               </span>
             </li>`;
         })
@@ -1283,6 +1429,20 @@
             e.preventDefault();
             onActivate(el);
           }
+        };
+      });
+    }
+
+    bindLikeButtons() {
+      this.shadowRoot.querySelectorAll("[data-like-value]").forEach((el) => {
+        el.onclick = (e) => {
+          e.stopPropagation();
+          const idx = Number(el.getAttribute("data-msg-index"));
+          const likeValue = el.getAttribute("data-like-value");
+          if (Number.isNaN(idx) || (likeValue !== "1" && likeValue !== "0")) {
+            return;
+          }
+          this.setLikeForMessage(idx, likeValue);
         };
       });
     }
@@ -1327,6 +1487,7 @@
 
       this.bindRefsToggles();
       this.bindHistoryDayCards();
+      this.bindLikeButtons();
     }
 
     render() {
@@ -1444,6 +1605,14 @@
 
   function svgDoc() {
     return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>`;
+  }
+
+  function svgThumbUp() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 22H3V9h4v13z"/><path d="M14 9V4.5a2.5 2.5 0 0 0-5 0V9l-2 3v10h9.28a2 2 0 0 0 1.96-1.61L20 12a2 2 0 0 0-1.96-2H14z"/></svg>`;
+  }
+
+  function svgThumbDown() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M17 2h4v13h-4V2z"/><path d="M10 15v4.5a2.5 2.5 0 0 0 5 0V15l2-3V2h-9.28a2 2 0 0 0-1.96 1.61L4 12a2 2 0 0 0 1.96 2H10z"/></svg>`;
   }
 
   function svgChevronLeft() {
