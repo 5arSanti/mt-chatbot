@@ -957,14 +957,14 @@
     get apiUrl() {
       return (
         this.getAttribute("api-url") ||
-        "https://course-storage-api-qdrant-1018797915827.us-east1.run.app/qa"
+        "https://course-storage-api-qdrant-1018797915827.us-east1.run.app"
       );
     }
 
     get apiBaseUrl() {
       const baseAttr = this.getAttribute("api-base-url");
       if (baseAttr) return baseAttr.replace(/\/$/, "");
-      return this.apiUrl.replace(/\/qa\/?$/i, "").replace(/\/$/, "");
+      return this.apiUrl.replace(/\/$/, "");
     }
 
     get historyUrl() {
@@ -973,6 +973,10 @@
 
     get likeUrl() {
       return `${this.apiBaseUrl}/like`;
+    }
+
+    get questionUrl() {
+      return `${this.apiBaseUrl}/question`;
     }
 
     /** "GET" | "POST" — si tu API usa GET con query params, pon history-method="GET". */
@@ -1123,7 +1127,7 @@
       if (input) input.value = "";
 
       try {
-        const response = await fetch(this.apiUrl, {
+        const response = await fetch(this.questionUrl, {
           method: "POST",
           mode: "cors",
           headers: { "Content-Type": "application/json" },
