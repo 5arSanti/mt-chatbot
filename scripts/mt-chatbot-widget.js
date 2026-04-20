@@ -196,14 +196,14 @@
   function buildStyles() {
     const t = THEME;
     return `
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap');
+/* system-ui fonts — no external import needed */
 
 :host {
   --mt-primary: ${t.primary};
   --mt-text: ${t.text};
   --mt-user-bubble: ${t.userBubble};
   --mt-bot-bubble: ${t.botBubble};
-  font-family: 'Roboto', 'Inter', system-ui, sans-serif;
+  font-family: system-ui, sans-serif;
   font-size: 15px;
   color: var(--mt-text);
 }
@@ -346,7 +346,7 @@
 
 .mt-sidebar-head {
   padding: 15px 18px 10px;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--mt-primary);
@@ -402,7 +402,7 @@
 }
 
 .mt-header-title {
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   font-weight: 700;
   font-size: 19px;
   letter-spacing: -0.02em;
@@ -467,7 +467,7 @@
   padding: 5px 12px;
   font-size: 12px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   color: var(--mt-primary);
   cursor: pointer;
   border-radius: 8px;
@@ -497,7 +497,7 @@
   background: ${t.userBubble};
   box-shadow: 0 1px 4px rgba(0,0,0,0.07);
   font-size: 15px;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   font-weight: 500;
   line-height: 1.45;
   color: ${t.text};
@@ -514,7 +514,7 @@
   font-size: 11px;
   font-weight: 700;
   color: ${t.textMuted};
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
 }
 
 .mt-msg-bot-wrap {
@@ -568,7 +568,7 @@
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
@@ -596,7 +596,7 @@
 }
 
 .mt-msg-bot .bot-answer {
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
   font-weight: 500;
 }
 
@@ -710,7 +710,7 @@
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   min-width: 44px;
   transition: opacity 0.15s, transform 0.1s;
 }
@@ -732,7 +732,7 @@
   padding: 8px 14px;
   font-size: 12px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   color: var(--mt-primary);
   background: #fff;
   border: 1px solid rgba(${t.primaryRgb}, 0.35);
@@ -830,7 +830,7 @@
   flex: 1;
   font-size: 16px;
   font-weight: 500;
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
   color: var(--mt-primary);
   line-height: 1.3;
   word-break: break-word;
@@ -840,7 +840,7 @@
   flex-shrink: 0;
   font-size: 11px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   color: #fff;
   background: var(--mt-primary);
   padding: 3px 8px;
@@ -857,7 +857,7 @@
   line-height: 1.45;
   color: ${t.text};
   white-space: break-spaces;
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
   font-weight: 400;
 }
 
@@ -881,7 +881,7 @@
 .mt-history-head h2 {
   margin: 0;
   font-size: 20px;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   font-weight: 600;
   color: var(--mt-primary);
 }
@@ -911,7 +911,7 @@
 .hist-row-q {
   font-size: 13px;
   font-weight: 500;
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
   color: ${t.text};
   line-height: 1.35;
   display: -webkit-box;
@@ -927,7 +927,7 @@
   flex-wrap: wrap;
   font-size: 11px;
   font-weight: 500;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   color: ${t.textMuted};
 }
 
@@ -1188,7 +1188,7 @@
 .mt-logo-name {
   font-size: 20px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   background: linear-gradient(to right, #67e8f9, #c084fc);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1199,7 +1199,7 @@
 .mt-logo-subtitle {
   font-size: 11px;
   color: rgba(255,255,255,0.5);
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   margin-top: 1px;
 }
 
@@ -1217,7 +1217,7 @@
   border-radius: 8px;
   font-size: 13px;
   color: rgba(255,255,255,0.7);
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
   max-width: 240px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1241,7 +1241,7 @@
   border-radius: 8px;
   font-size: 13px;
   color: rgba(255,255,255,0.7);
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
 }
 
 .mt-student-badge svg {
@@ -1263,7 +1263,7 @@
   color: rgba(255,255,255,0.9);
   font-weight: 500;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   transition: background 0.2s;
 }
 
@@ -1324,13 +1324,13 @@
   font-size: 15px;
   font-weight: 600;
   color: rgba(255,255,255,0.9);
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
 }
 
 .mt-sidebar-head-count {
   font-size: 12px;
   color: rgba(255,255,255,0.5);
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   margin-top: 4px;
 }
 
@@ -1400,7 +1400,7 @@
 .mt-sidebar-empty p {
   font-size: 13px;
   color: rgba(255,255,255,0.4);
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   margin: 0;
 }
 
@@ -1585,7 +1585,7 @@
 .mt-es-title {
   font-size: 28px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   background: linear-gradient(to right, #67e8f9, #c084fc);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1599,7 +1599,7 @@
   color: rgba(255,255,255,0.6);
   margin: 0 0 32px;
   line-height: 1.6;
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
 }
 
 /* Feature grid */
@@ -1634,14 +1634,14 @@
   font-size: 13px;
   font-weight: 600;
   color: rgba(255,255,255,0.9);
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   margin: 0 0 4px;
 }
 
 .mt-feature-desc {
   font-size: 12px;
   color: rgba(255,255,255,0.6);
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
   line-height: 1.4;
   margin: 0;
 }
@@ -1655,7 +1655,7 @@
   margin-bottom: 16px;
   font-size: 13px;
   color: rgba(255,255,255,0.5);
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
 }
 
 .mt-sug-hint svg {
@@ -1679,14 +1679,26 @@
   font-size: 13px;
   color: rgba(255,255,255,0.7);
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-family: system-ui, sans-serif;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+  transform: scale(1);
 }
 
 .mt-sug-btn:hover {
   background: linear-gradient(to right, rgba(0,217,255,0.2), rgba(168,85,247,0.2));
   border-color: rgba(0,217,255,0.3);
   color: rgba(255,255,255,0.9);
+  transform: scale(1.02);
+}
+
+.mt-sug-btn:active {
+  transform: scale(0.97);
+}
+
+@keyframes mt-sparkles-pop {
+  0%   { opacity: 0; transform: scale(0) rotate(-45deg); }
+  60%  { transform: scale(1.2) rotate(5deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
 }
 
 /* Dark input */
@@ -1703,8 +1715,36 @@
   margin: 0 auto;
 }
 
+/* Wrapper relativo para el glow exterior */
+.mt-input-wrap {
+  position: relative;
+}
+
+/* Glow blur que aparece al enfocar — idéntico al de ChatInput.tsx */
+.mt-input-glow {
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(to right, rgba(0,217,255,0.35), rgba(168,85,247,0.35));
+  border-radius: 18px;
+  filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.mt-input-wrap:focus-within .mt-input-glow {
+  opacity: 1;
+}
+
+@keyframes mt-scan-bar {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
 .mt-input-glass {
   position: relative;
+  z-index: 1;
   background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 16px;
@@ -1713,6 +1753,29 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
+  transition: border-color 0.2s;
+}
+
+.mt-input-glass:hover {
+  border-color: rgba(255,255,255,0.32);
+}
+
+/* Barra "scanner" en el borde superior — idéntico al de ChatInput.tsx */
+.mt-input-scanner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(0,217,255,0.9) 50%, transparent 100%);
+  pointer-events: none;
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.mt-input-glass:focus-within .mt-input-scanner {
+  opacity: 1;
+  animation: mt-scan-bar 2s linear infinite;
 }
 
 .mt-input-glass input {
@@ -1724,7 +1787,7 @@
   color: white !important;
   font-size: 15px;
   outline: none;
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
 }
 
 .mt-input-glass input::placeholder {
@@ -1863,7 +1926,7 @@
 .mt-loading-text {
   font-size: 14px;
   color: rgba(255,255,255,0.7);
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
 }
 
 .mt-loading-dots {
@@ -1955,7 +2018,7 @@
   color: rgba(255,255,255,0.7);
   line-height: 1.5;
   margin: 0;
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -1966,7 +2029,7 @@
   display: block;
   text-align: right;
   font-size: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   color: rgba(0,217,255,0);
   margin-top: 8px;
   transition: color 0.2s ease;
@@ -2022,7 +2085,7 @@
   color: rgba(255,255,255,0.6);
   cursor: pointer;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   font-weight: 500;
   overflow: hidden;
   transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
@@ -2144,7 +2207,7 @@
 .mt-compact-logo-icon svg { width: 16px; height: 16px; }
 
 .mt-compact-logo-name {
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   font-weight: 700;
   font-size: 14px;
   background: linear-gradient(to right, #67e8f9, #c084fc);
@@ -2156,7 +2219,7 @@
 }
 
 .mt-compact-logo-sub {
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   font-size: 10px;
   color: rgba(255,255,255,0.5);
   margin-top: 1px;
@@ -2194,7 +2257,7 @@
 
 .mt-cpt-title {
   margin: 0 0 6px;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, sans-serif;
   font-weight: 700;
   font-size: 20px;
   background: linear-gradient(to right, #67e8f9, #c084fc);
@@ -2206,7 +2269,7 @@
 
 .mt-cpt-subtitle {
   margin: 0 0 4px;
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
   font-size: 12px;
   color: rgba(255,255,255,0.55);
   line-height: 1.5;
@@ -2227,7 +2290,7 @@
   font-size: 12px;
   color: rgba(255,255,255,0.7);
   cursor: pointer;
-  font-family: 'Roboto', sans-serif;
+  font-family: system-ui, sans-serif;
   text-align: left;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
   line-height: 1.3;
@@ -2734,15 +2797,15 @@
         <div style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
           <div style="padding:20px 32px 16px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.08);">
             <div style="margin-bottom:16px;">
-              <h1 style="font-size:24px;font-weight:700;background:linear-gradient(to right,#22d3ee,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0;font-family:'Inter',sans-serif;">Historial de Consultas</h1>
-              <p style="font-size:13px;color:rgba(255,255,255,0.45);margin:4px 0 0;font-family:'Inter',sans-serif;">Todas tus preguntas y respuestas organizadas en un solo lugar</p>
+              <h1 style="font-size:24px;font-weight:700;background:linear-gradient(to right,#22d3ee,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0;font-family:system-ui,sans-serif;">Historial de Consultas</h1>
+              <p style="font-size:13px;color:rgba(255,255,255,0.45);margin:4px 0 0;font-family:system-ui,sans-serif;">Todas tus preguntas y respuestas organizadas en un solo lugar</p>
             </div>
           </div>
           <div style="flex:1;overflow-y:auto;padding:20px 32px;" class="mt-history-scroll">
             <div style="display:flex;flex-direction:column;gap:14px;">
               ${skelCard}${skelCard}${skelCard}
             </div>
-            <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:24px 0;color:rgba(255,255,255,0.4);font-size:13px;font-family:'Inter',sans-serif;">
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:24px 0;color:rgba(255,255,255,0.4);font-size:13px;font-family:system-ui,sans-serif;">
               <span class="mt-spin" aria-hidden="true"></span>
               <span>Cargando conversaciones…</span>
             </div>
@@ -2780,13 +2843,13 @@
       const emptyHtml = `
         <div style="text-align:center;padding:40px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;">
           <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="rgba(0,217,255,0.2)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          <p style="font-size:13px;color:rgba(255,255,255,0.35);font-family:'Inter',sans-serif;margin:0;line-height:1.5;">
+          <p style="font-size:13px;color:rgba(255,255,255,0.35);font-family:system-ui,sans-serif;margin:0;line-height:1.5;">
             ${historySearch ? 'Sin resultados para esa búsqueda' : 'Aún no tienes conversaciones guardadas'}
           </p>
         </div>`;
 
       const itemsHtml = historyError
-        ? `<p style="text-align:center;padding:32px 16px;color:rgba(255,255,255,0.4);font-family:'Inter',sans-serif;font-size:13px;margin:0;">${escapeHtml(historyError)}</p>`
+        ? `<p style="text-align:center;padding:32px 16px;color:rgba(255,255,255,0.4);font-family:system-ui,sans-serif;font-size:13px;margin:0;">${escapeHtml(historyError)}</p>`
         : items.length === 0 ? emptyHtml
         : items.map((item, idx) => {
             const id = item.request_id || String(idx);
@@ -2797,9 +2860,9 @@
             const confColor = confColors[item.confidence] || '';
 
             const likeHtml = like === '1'
-              ? `<span style="display:inline-flex;align-items:center;gap:3px;color:#34d399;font-size:10px;font-family:'Inter',sans-serif;font-weight:500;"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/></svg>Útil</span>`
+              ? `<span style="display:inline-flex;align-items:center;gap:3px;color:#34d399;font-size:10px;font-family:system-ui,sans-serif;font-weight:500;"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/></svg>Útil</span>`
               : like === '0'
-              ? `<span style="display:inline-flex;align-items:center;gap:3px;color:#fb7185;font-size:10px;font-family:'Inter',sans-serif;font-weight:500;"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/></svg>No útil</span>`
+              ? `<span style="display:inline-flex;align-items:center;gap:3px;color:#fb7185;font-size:10px;font-family:system-ui,sans-serif;font-weight:500;"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/></svg>No útil</span>`
               : '';
 
             return `
@@ -2808,9 +2871,9 @@
                 onmouseleave="this.style.borderColor='rgba(255,255,255,0.08)';this.style.background='rgba(255,255,255,0.04)';">
                 <button type="button" data-action="history-item-toggle" data-id="${escapeHtml(id)}"
                   style="width:100%;text-align:left;background:none;border:none;padding:10px 12px;cursor:pointer;">
-                  <p style="margin:0 0 6px;font-family:'Roboto',sans-serif;font-size:13px;color:rgba(255,255,255,0.9);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escapeHtml(item.question || '')}</p>
+                  <p style="margin:0 0 6px;font-family:system-ui,sans-serif;font-size:13px;color:rgba(255,255,255,0.9);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escapeHtml(item.question || '')}</p>
                   <div style="display:flex;align-items:center;gap:8px;">
-                    <span style="font-size:10px;color:rgba(255,255,255,0.35);font-family:'Inter',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(date)}</span>
+                    <span style="font-size:10px;color:rgba(255,255,255,0.35);font-family:system-ui,sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(date)}</span>
                     ${likeHtml}
                     ${confColor ? `<span style="width:6px;height:6px;border-radius:50%;background:${confColor};box-shadow:0 0 4px ${confColor};flex-shrink:0;"></span>` : ''}
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s;transform:rotate(${isOpen ? '180' : '0'}deg);"><polyline points="6 9 12 15 18 9"/></svg>
@@ -2818,7 +2881,7 @@
                 </button>
                 ${isOpen && item.answer ? `
                   <div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.12);">
-                    <p style="margin:0 0 10px;font-family:'Roboto',sans-serif;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.6;">${escapeHtml(item.answer)}</p>
+                    <p style="margin:0 0 10px;font-family:system-ui,sans-serif;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.6;">${escapeHtml(item.answer)}</p>
                     ${this.renderConfidenceBadge(item.confidence)}
                   </div>
                 ` : ''}
@@ -2835,7 +2898,7 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" style="flex-shrink:0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input data-action="history-search" type="text" placeholder="Buscar conversación..."
                 value="${escapeHtml(historySearch)}"
-                style="flex:1;background:transparent;border:none;outline:none;color:rgba(255,255,255,0.9);font-size:13px;font-family:'Inter',sans-serif;"
+                style="flex:1;background:transparent;border:none;outline:none;color:rgba(255,255,255,0.9);font-size:13px;font-family:system-ui,sans-serif;"
                 autocomplete="off" />
               ${historySearch ? `<button type="button" data-action="history-search-clear"
                 style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;padding:0;line-height:0;flex-shrink:0;"
@@ -2874,7 +2937,7 @@
       ];
       const filterHtml = filterDefs.map(f => {
         const active = (historyFilter || 'all') === f.value;
-        const baseStyle = `display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;`;
+        const baseStyle = `display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-family:system-ui,sans-serif;transition:all 0.2s;`;
         const activeStyle = `border:1px solid rgba(6,182,212,0.5);background:linear-gradient(to right,rgba(6,182,212,0.2),rgba(168,85,247,0.2));color:#fff;`;
         const inactiveStyle = `border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.6);`;
         return `<button type="button" data-action="history-filter" data-filter="${f.value}" data-active="${active ? '1' : '0'}"
@@ -2887,14 +2950,14 @@
       // Items HTML
       let itemsHtml;
       if (historyError) {
-        itemsHtml = `<div style="text-align:center;padding:48px 0;color:rgba(255,255,255,0.5);font-family:'Inter',sans-serif;">${escapeHtml(historyError)}</div>`;
+        itemsHtml = `<div style="text-align:center;padding:48px 0;color:rgba(255,255,255,0.5);font-family:system-ui,sans-serif;">${escapeHtml(historyError)}</div>`;
       } else if (items.length === 0) {
         itemsHtml = `
           <div style="text-align:center;padding:64px 0;display:flex;flex-direction:column;align-items:center;gap:16px;">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             <div>
-              <p style="font-size:18px;font-weight:600;color:rgba(255,255,255,0.6);font-family:'Inter',sans-serif;margin:0 0 8px;">No se encontraron resultados</p>
-              <p style="font-size:13px;color:rgba(255,255,255,0.35);font-family:'Inter',sans-serif;margin:0;">${historySearch || (historyFilter && historyFilter !== 'all') ? 'Intenta cambiar los filtros o la búsqueda' : 'Aún no has realizado ninguna consulta'}</p>
+              <p style="font-size:18px;font-weight:600;color:rgba(255,255,255,0.6);font-family:system-ui,sans-serif;margin:0 0 8px;">No se encontraron resultados</p>
+              <p style="font-size:13px;color:rgba(255,255,255,0.35);font-family:system-ui,sans-serif;margin:0;">${historySearch || (historyFilter && historyFilter !== 'all') ? 'Intenta cambiar los filtros o la búsqueda' : 'Aún no has realizado ninguna consulta'}</p>
             </div>
           </div>`;
       } else {
@@ -2908,12 +2971,12 @@
           const likeHtml = like === '1'
             ? `<div style="display:flex;align-items:center;gap:5px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgb(52,211,153)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                <span style="font-size:12px;color:rgb(52,211,153);font-family:'Inter',sans-serif;">Útil</span>
+                <span style="font-size:12px;color:rgb(52,211,153);font-family:system-ui,sans-serif;">Útil</span>
               </div>`
             : like === '0'
             ? `<div style="display:flex;align-items:center;gap:5px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgb(251,113,133)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
-                <span style="font-size:12px;color:rgb(251,113,133);font-family:'Inter',sans-serif;">No útil</span>
+                <span style="font-size:12px;color:rgb(251,113,133);font-family:system-ui,sans-serif;">No útil</span>
               </div>`
             : '';
 
@@ -2935,16 +2998,16 @@
                 >
                   <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
                     <div style="flex:1;min-width:0;">
-                      <h3 style="font-size:15px;font-weight:600;color:rgba(255,255,255,0.9);margin:0 0 10px;font-family:'Inter',sans-serif;line-height:1.4;">${escapeHtml(item.question || '')}</h3>
+                      <h3 style="font-size:15px;font-weight:600;color:rgba(255,255,255,0.9);margin:0 0 10px;font-family:system-ui,sans-serif;line-height:1.4;">${escapeHtml(item.question || '')}</h3>
                       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;${!isExp ? 'margin-bottom:12px;' : ''}">
                         <div style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.45);">
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                          <span style="font-size:12px;font-family:'Inter',sans-serif;">${escapeHtml(dateStr)}</span>
+                          <span style="font-size:12px;font-family:system-ui,sans-serif;">${escapeHtml(dateStr)}</span>
                         </div>
                         ${likeHtml}
                         ${confidenceHtml}
                       </div>
-                      ${!isExp && item.answer ? `<p style="font-size:13px;color:rgba(255,255,255,0.55);margin:0;font-family:'Roboto',sans-serif;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(item.answer)}</p>` : ''}
+                      ${!isExp && item.answer ? `<p style="font-size:13px;color:rgba(255,255,255,0.55);margin:0;font-family:system-ui,sans-serif;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(item.answer)}</p>` : ''}
                     </div>
                     <div style="flex-shrink:0;transform:rotate(${isExp ? '180deg' : '0deg'});transition:transform 0.2s;color:rgba(255,255,255,0.35);margin-top:2px;">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -2954,14 +3017,14 @@
                 ${isExp ? `
                   <div style="border-top:1px solid rgba(255,255,255,0.08);padding:20px 24px;">
                     <div style="margin-bottom:${mappedCitations.length > 0 ? '24px' : '0'};">
-                      <h4 style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;font-family:'Inter',sans-serif;margin:0 0 12px;">Respuesta Completa</h4>
-                      <p style="font-size:14px;color:rgba(255,255,255,0.8);line-height:1.7;margin:0;font-family:'Roboto',sans-serif;white-space:pre-wrap;">${escapeHtml(item.answer || '')}</p>
+                      <h4 style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;font-family:system-ui,sans-serif;margin:0 0 12px;">Respuesta Completa</h4>
+                      <p style="font-size:14px;color:rgba(255,255,255,0.8);line-height:1.7;margin:0;font-family:system-ui,sans-serif;white-space:pre-wrap;">${escapeHtml(item.answer || '')}</p>
                     </div>
                     ${mappedCitations.length > 0 ? `
                       <div>
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
                           <div style="height:1px;flex:1;background:linear-gradient(to right,transparent,rgba(168,85,247,0.3),transparent);"></div>
-                          <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;font-family:'Inter',sans-serif;">Fuentes Consultadas (${mappedCitations.length})</span>
+                          <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;font-family:system-ui,sans-serif;">Fuentes Consultadas (${mappedCitations.length})</span>
                           <div style="height:1px;flex:1;background:linear-gradient(to right,transparent,rgba(168,85,247,0.3),transparent);"></div>
                         </div>
                         <div style="display:grid;gap:10px;">
@@ -2982,8 +3045,8 @@
           <div style="padding:20px 32px 16px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.08);">
             <!-- Header title -->
             <div style="margin-bottom:16px;">
-              <h1 style="font-size:24px;font-weight:700;background:linear-gradient(to right,#22d3ee,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0;font-family:'Inter',sans-serif;line-height:1.2;">Historial de Consultas</h1>
-              <p style="font-size:13px;color:rgba(255,255,255,0.45);margin:4px 0 0;font-family:'Inter',sans-serif;">Todas tus preguntas y respuestas organizadas en un solo lugar</p>
+              <h1 style="font-size:24px;font-weight:700;background:linear-gradient(to right,#22d3ee,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0;font-family:system-ui,sans-serif;line-height:1.2;">Historial de Consultas</h1>
+              <p style="font-size:13px;color:rgba(255,255,255,0.45);margin:4px 0 0;font-family:system-ui,sans-serif;">Todas tus preguntas y respuestas organizadas en un solo lugar</p>
             </div>
 
             <!-- Search bar -->
@@ -2994,9 +3057,9 @@
                 <input type="text" data-action="history-search"
                   placeholder="Buscar en el historial..."
                   value="${escapeHtml(historySearch || '')}"
-                  style="flex:1;background:transparent;border:none;outline:none;color:rgba(255,255,255,0.9);font-size:14px;font-family:'Inter',sans-serif;"
+                  style="flex:1;background:transparent;border:none;outline:none;color:rgba(255,255,255,0.9);font-size:14px;font-family:system-ui,sans-serif;"
                 />
-                ${historySearch ? `<button type="button" data-action="history-search-clear" style="color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;padding:2px 6px;"
+                ${historySearch ? `<button type="button" data-action="history-search-clear" style="color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;font-size:12px;font-family:system-ui,sans-serif;padding:2px 6px;"
                   onmouseenter="this.style.color='rgba(255,255,255,0.7)';"
                   onmouseleave="this.style.color='rgba(255,255,255,0.4)';"
                 >Limpiar</button>` : ''}
@@ -3005,7 +3068,7 @@
 
             <!-- Filter buttons -->
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <div style="display:flex;align-items:center;gap:5px;color:rgba(255,255,255,0.35);font-size:12px;font-family:'Inter',sans-serif;">
+              <div style="display:flex;align-items:center;gap:5px;color:rgba(255,255,255,0.35);font-size:12px;font-family:system-ui,sans-serif;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
                 <span>Filtros:</span>
               </div>
@@ -3013,7 +3076,7 @@
             </div>
 
             <!-- Results count -->
-            <div style="margin-top:10px;font-size:12px;color:rgba(255,255,255,0.35);font-family:'Inter',sans-serif;">
+            <div style="margin-top:10px;font-size:12px;color:rgba(255,255,255,0.35);font-family:system-ui,sans-serif;">
               ${total} ${total === 1 ? 'resultado' : 'resultados'}
             </div>
           </div>
@@ -3126,22 +3189,22 @@
               ${svgFileCitationIcon()}
             </div>
             <div style="flex:1;min-width:0;">
-              <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Inter',sans-serif;">${filename}</div>
+              <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:system-ui,sans-serif;">${filename}</div>
               ${location ? `
                 <div style="display:flex;align-items:center;gap:5px;margin-top:4px;">
                   <span style="color:#a855f7;display:flex;align-items:center;">${svgMapPinIcon()}</span>
-                  <span style="font-size:11px;color:rgba(255,255,255,0.6);font-family:'Inter',sans-serif;">${location}</span>
+                  <span style="font-size:11px;color:rgba(255,255,255,0.6);font-family:system-ui,sans-serif;">${location}</span>
                 </div>
               ` : ''}
             </div>
-            ${page != null ? `<div style="flex-shrink:0;padding:4px 8px;background:rgba(0,217,255,0.1);border:1px solid rgba(0,217,255,0.3);border-radius:4px;font-size:11px;color:#00d9ff;font-weight:500;font-family:'Inter',sans-serif;white-space:nowrap;">P. ${page}</div>` : ''}
+            ${page != null ? `<div style="flex-shrink:0;padding:4px 8px;background:rgba(0,217,255,0.1);border:1px solid rgba(0,217,255,0.3);border-radius:4px;font-size:11px;color:#00d9ff;font-weight:500;font-family:system-ui,sans-serif;white-space:nowrap;">P. ${page}</div>` : ''}
           </div>
           ${c.snippet ? `
             <div class="mt-cc-snippet-wrap" style="padding-left:12px;border-left:2px solid rgba(168,85,247,0.4);overflow:hidden;transition:all 0.25s ease;">
-              <p class="mt-cc-snippet" style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.5;margin:0;font-family:'Roboto',sans-serif;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">"${escapeHtml(c.snippet)}"</p>
+              <p class="mt-cc-snippet" style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.5;margin:0;font-family:system-ui,sans-serif;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">"${escapeHtml(c.snippet)}"</p>
             </div>
             <button type="button" class="mt-cc-more"
-              style="display:block;width:100%;text-align:right;font-size:12px;font-family:'Inter',sans-serif;color:rgba(0,217,255,0.8);margin-top:8px;transition:opacity 0.2s ease,color 0.2s ease;background:none;border:none;cursor:pointer;padding:0;opacity:0;"
+              style="display:block;width:100%;text-align:right;font-size:12px;font-family:system-ui,sans-serif;color:rgba(0,217,255,0.8);margin-top:8px;transition:opacity 0.2s ease,color 0.2s ease;background:none;border:none;cursor:pointer;padding:0;opacity:0;"
               onclick="
                 var card = this.parentElement;
                 var wrap = card.querySelector('.mt-cc-snippet-wrap');
@@ -3181,9 +3244,9 @@
         <div style="display:flex;justify-content:flex-end;align-items:flex-end;gap:12px;margin-bottom:24px;${latest ? 'animation:mt-fade-in 0.35s ease;' : ''}">
           <div style="max-width:512px;">
             <div class="mt-user-bubble" style="position:relative;background:linear-gradient(to bottom right,rgba(0,217,255,0.2),rgba(168,85,247,0.2));border:1px solid rgba(0,217,255,0.3);border-radius:16px;padding:16px 24px;">
-              <p class="mt-bot-answer-text" style="color:rgba(255,255,255,0.9);line-height:1.6;margin:0;font-family:'Roboto',sans-serif;font-size:15px;">${escapeHtml(m.text)}</p>
+              <p class="mt-bot-answer-text" style="color:rgba(255,255,255,0.9);line-height:1.6;margin:0;font-family:system-ui,sans-serif;font-size:15px;">${escapeHtml(m.text)}</p>
             </div>
-            ${time ? `<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:6px;text-align:right;font-family:'Inter',sans-serif;">${escapeHtml(time)}</div>` : ''}
+            ${time ? `<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:6px;text-align:right;font-family:system-ui,sans-serif;">${escapeHtml(time)}</div>` : ''}
           </div>
           <div style="flex-shrink:0;width:40px;height:40px;background:linear-gradient(to bottom right,rgba(0,217,255,0.3),rgba(168,85,247,0.3));border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,217,255,0.4);color:rgba(0,217,255,0.9);">
             ${svgUserIcon()}
@@ -3206,7 +3269,7 @@
           <div style="position:relative;width:96px;height:6px;background:rgba(255,255,255,0.1);border-radius:9999px;overflow:hidden;">
             <div style="position:absolute;top:0;bottom:0;left:0;width:${c.width};background:${c.color};border-radius:9999px;box-shadow:0 0 10px ${c.glow};transform-origin:left center;animation:mt-conf-fill 0.8s ease-out both;"></div>
           </div>
-          <span style="font-size:11px;color:rgba(255,255,255,0.7);font-family:'Inter',sans-serif;font-weight:500;">${c.label}</span>
+          <span style="font-size:11px;color:rgba(255,255,255,0.7);font-family:system-ui,sans-serif;font-weight:500;">${c.label}</span>
         </div>`;
     }
 
@@ -3225,30 +3288,44 @@
       const dislikeOn  = 'background:rgba(244,63,94,0.2);border:1px solid rgba(244,63,94,0.5);color:rgb(251,113,133);box-shadow:0 0 12px rgba(244,63,94,0.2);';
       const dislikeOff = 'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);';
 
+      const sparklesSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>`;
       const feedbackHtml = showFeedback ? `
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-          <span style="font-size:14px;color:rgba(255,255,255,0.5);font-family:'Inter',sans-serif;">¿Te fue útil?</span>
+          <span style="font-size:14px;color:rgba(255,255,255,0.5);font-family:system-ui,sans-serif;">¿Te fue útil?</span>
           <div style="display:flex;align-items:center;gap:8px;">
-            <button
-              style="${likeBase}${like === '1' ? likeOn : likeOff}"
-              ${busy ? 'disabled style="opacity:0.6;pointer-events:none;"' : ''}
-              onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(16,185,129,0.5)';this.style.color='rgb(52,211,153)';this.style.background='rgba(16,185,129,0.1)';}"
-              onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.6)';this.style.background='rgba(255,255,255,0.05)';}"
-              data-active="${like === '1' ? '1' : ''}"
-              data-like-value="1" data-msg-index="${msgIndex}" aria-label="Útil">
-              <span style="display:flex;width:16px;height:16px;flex-shrink:0;">${svgThumbUp()}</span> <span>Útil</span>
-            </button>
-            <button
-              style="${likeBase}${like === '0' ? dislikeOn : dislikeOff}"
-              ${busy ? 'disabled style="opacity:0.6;pointer-events:none;"' : ''}
-              onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(244,63,94,0.5)';this.style.color='rgb(251,113,133)';this.style.background='rgba(244,63,94,0.1)';}"
-              onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.6)';this.style.background='rgba(255,255,255,0.05)';}"
-              data-active="${like === '0' ? '1' : ''}"
-              data-like-value="0" data-msg-index="${msgIndex}" aria-label="No útil">
-              <span style="display:flex;width:16px;height:16px;flex-shrink:0;">${svgThumbDown()}</span> <span>No útil</span>
-            </button>
+            <!-- Útil button -->
+            <div style="position:relative;">
+              ${like === '1' ? `<div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(16,185,129,0.3),rgba(0,217,255,0.3));border-radius:10px;filter:blur(8px);pointer-events:none;"></div>` : ''}
+              <button
+                style="${likeBase}${like === '1' ? likeOn : likeOff}position:relative;transition:${likeBase.includes('transition') ? '' : 'all 0.15s, transform 0.1s;'}"
+                ${busy ? 'disabled' : ''}
+                onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(16,185,129,0.5)';this.style.color='rgb(52,211,153)';this.style.background='rgba(16,185,129,0.1)';this.style.transform='scale(1.05)';}"
+                onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.6)';this.style.background='rgba(255,255,255,0.05)';} this.style.transform='scale(1)';"
+                onmousedown="this.style.transform='scale(0.95)';"
+                onmouseup="this.style.transform='scale(1)';"
+                data-active="${like === '1' ? '1' : ''}"
+                data-like-value="1" data-msg-index="${msgIndex}" aria-label="Útil">
+                <span style="display:flex;width:16px;height:16px;flex-shrink:0;">${svgThumbUp()}</span> <span>Útil</span>
+              </button>
+              ${like === '1' ? `<div style="position:absolute;top:-7px;right:-7px;color:rgb(52,211,153);animation:mt-sparkles-pop 0.35s cubic-bezier(0.34,1.56,0.64,1) both;">${sparklesSvg}</div>` : ''}
+            </div>
+            <!-- No útil button -->
+            <div style="position:relative;">
+              ${like === '0' ? `<div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(244,63,94,0.3),rgba(236,72,153,0.3));border-radius:10px;filter:blur(8px);pointer-events:none;"></div>` : ''}
+              <button
+                style="${likeBase}${like === '0' ? dislikeOn : dislikeOff}position:relative;transition:all 0.15s, transform 0.1s;"
+                ${busy ? 'disabled' : ''}
+                onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(244,63,94,0.5)';this.style.color='rgb(251,113,133)';this.style.background='rgba(244,63,94,0.1)';this.style.transform='scale(1.05)';}"
+                onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.6)';this.style.background='rgba(255,255,255,0.05)';} this.style.transform='scale(1)';"
+                onmousedown="this.style.transform='scale(0.95)';"
+                onmouseup="this.style.transform='scale(1)';"
+                data-active="${like === '0' ? '1' : ''}"
+                data-like-value="0" data-msg-index="${msgIndex}" aria-label="No útil">
+                <span style="display:flex;width:16px;height:16px;flex-shrink:0;">${svgThumbDown()}</span> <span>No útil</span>
+              </button>
+            </div>
           </div>
-          ${like != null ? '<span style="font-size:12px;color:rgba(255,255,255,0.4);font-family:\'Inter\',sans-serif;">Gracias por tu feedback</span>' : ''}
+          ${like != null ? '<span style="font-size:12px;color:rgba(255,255,255,0.4);font-family:\'Inter\',sans-serif;animation:mt-fade-in 0.3s ease;">Gracias por tu feedback</span>' : ''}
         </div>
       ` : '';
 
@@ -3262,14 +3339,14 @@
             >
               <div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(168,85,247,0.25),rgba(0,217,255,0.25));border-radius:18px;filter:blur(10px);opacity:0;transition:opacity 0.2s ease;pointer-events:none;z-index:0;"></div>
               <div class="mt-bot-bubble-card" style="position:relative;z-index:1;background:linear-gradient(135deg,rgba(255,255,255,0.08) 0%,rgba(255,255,255,0.13) 100%);border:1px solid rgba(255,255,255,0.18);border-radius:16px;padding:20px 24px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.1),0 4px 24px rgba(0,0,0,0.2);">
-                <p class="mt-bot-answer-text" style="color:rgba(255,255,255,0.9);line-height:1.6;margin:0;font-family:'Roboto',sans-serif;font-size:15px;white-space:pre-wrap;">${escapeHtml(m.text)}</p>
+                <p class="mt-bot-answer-text" style="color:rgba(255,255,255,0.9);line-height:1.6;margin:0;font-family:system-ui,sans-serif;font-size:15px;white-space:pre-wrap;">${escapeHtml(m.text)}</p>
               </div>
             </div>
             ${citations.length > 0 ? `
               <div class="mt-citations-section" style="margin-bottom:16px;animation:mt-fade-in 0.35s ease 0.2s both;">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
                   <div style="height:1px;flex:1;background:linear-gradient(to right,transparent,rgba(168,85,247,0.3),transparent);"></div>
-                  <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.08em;font-family:'Inter',sans-serif;">Evidencia Documental</span>
+                  <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.08em;font-family:system-ui,sans-serif;">Evidencia Documental</span>
                   <div style="height:1px;flex:1;background:linear-gradient(to right,transparent,rgba(168,85,247,0.3),transparent);"></div>
                 </div>
                 <div style="display:grid;gap:12px;">
@@ -3279,7 +3356,7 @@
             ` : ''}
             <div class="mt-msg-footer" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;animation:mt-fade-in 0.35s ease 0.4s both;">
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                ${time ? `<span style="font-size:12px;color:rgba(255,255,255,0.4);font-family:'Inter',sans-serif;">${escapeHtml(time)}</span>` : ''}
+                ${time ? `<span style="font-size:12px;color:rgba(255,255,255,0.4);font-family:system-ui,sans-serif;">${escapeHtml(time)}</span>` : ''}
                 ${confidenceHtml}
               </div>
               ${feedbackHtml}
@@ -3309,10 +3386,10 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </div>
             <div style="flex:1;min-width:0;">
-              <p style="margin:0;font-size:12px;font-weight:600;color:rgba(255,255,255,0.85);font-family:'Inter',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${filename}</p>
-              ${location ? `<p style="margin:2px 0 0;font-size:10px;color:rgba(255,255,255,0.4);font-family:'Inter',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${location}</p>` : ''}
+              <p style="margin:0;font-size:12px;font-weight:600;color:rgba(255,255,255,0.85);font-family:system-ui,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${filename}</p>
+              ${location ? `<p style="margin:2px 0 0;font-size:10px;color:rgba(255,255,255,0.4);font-family:system-ui,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${location}</p>` : ''}
             </div>
-            ${page != null ? `<span style="font-size:10px;color:#00d9ff;background:rgba(0,217,255,0.12);border:1px solid rgba(0,217,255,0.25);border-radius:4px;padding:2px 6px;flex-shrink:0;font-family:'Inter',sans-serif;">p.${page}</span>` : ''}
+            ${page != null ? `<span style="font-size:10px;color:#00d9ff;background:rgba(0,217,255,0.12);border:1px solid rgba(0,217,255,0.25);border-radius:4px;padding:2px 6px;flex-shrink:0;font-family:system-ui,sans-serif;">p.${page}</span>` : ''}
             ${snippet ? `<button type="button"
               onclick="(function(btn){var pill=btn.closest('[id^=mt-cpill-]');var snip=pill.querySelector('.mt-cpill-snip');var open=pill.dataset.open==='1';if(open){snip.style.display='none';pill.dataset.open='0';btn.querySelector('svg').style.transform='rotate(0deg)';}else{snip.style.display='block';pill.dataset.open='1';btn.querySelector('svg').style.transform='rotate(180deg)';};})(this)"
               style="background:none;border:none;padding:2px;cursor:pointer;color:rgba(255,255,255,0.35);flex-shrink:0;line-height:0;">
@@ -3320,7 +3397,7 @@
             </button>` : ''}
           </div>
           <!-- Snippet (hidden by default) -->
-          ${snippet ? `<p class="mt-cpill-snip" style="display:none;margin:8px 0 0;font-size:11px;color:rgba(255,255,255,0.55);font-family:'Roboto',sans-serif;line-height:1.5;border-top:1px solid rgba(255,255,255,0.07);padding-top:8px;">${snippet}</p>` : ''}
+          ${snippet ? `<p class="mt-cpill-snip" style="display:none;margin:8px 0 0;font-size:11px;color:rgba(255,255,255,0.55);font-family:system-ui,sans-serif;line-height:1.5;border-top:1px solid rgba(255,255,255,0.07);padding-top:8px;">${snippet}</p>` : ''}
         </div>`;
     }
 
@@ -3335,46 +3412,74 @@
       const likeStyle    = like === '1' ? 'background:rgba(16,185,129,0.2);border-color:rgba(16,185,129,0.5);color:rgb(52,211,153);' : 'background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.55);';
       const dislikeStyle = like === '0' ? 'background:rgba(244,63,94,0.2);border-color:rgba(244,63,94,0.5);color:rgb(251,113,133);'  : 'background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.55);';
 
+      const cSparklesSvg = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>`;
       const feedbackHtml = showFeedback ? `
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;">
-          <button ${busy ? 'disabled' : ''}
-            style="${btnBase}${likeStyle}${busy ? 'opacity:0.5;pointer-events:none;' : ''}"
-            onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(16,185,129,0.5)';this.style.color='rgb(52,211,153)';this.style.background='rgba(16,185,129,0.1)';}"
-            onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.55)';this.style.background='rgba(255,255,255,0.05)';}"
-            data-active="${like === '1' ? '1' : ''}"
-            data-like-value="1" data-msg-index="${msgIndex}" aria-label="Útil">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-            Útil
-          </button>
-          <button ${busy ? 'disabled' : ''}
-            style="${btnBase}${dislikeStyle}${busy ? 'opacity:0.5;pointer-events:none;' : ''}"
-            onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(244,63,94,0.5)';this.style.color='rgb(251,113,133)';this.style.background='rgba(244,63,94,0.1)';}"
-            onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.55)';this.style.background='rgba(255,255,255,0.05)';}"
-            data-active="${like === '0' ? '1' : ''}"
-            data-like-value="0" data-msg-index="${msgIndex}" aria-label="No útil">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
-            No útil
-          </button>
+          <!-- Útil compact -->
+          <div style="position:relative;">
+            ${like === '1' ? `<div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(16,185,129,0.25),rgba(0,217,255,0.25));border-radius:8px;filter:blur(6px);pointer-events:none;"></div>` : ''}
+            <button ${busy ? 'disabled' : ''}
+              style="${btnBase}${likeStyle}${busy ? 'opacity:0.5;pointer-events:none;' : ''}position:relative;transition:all 0.15s,transform 0.1s;"
+              onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(16,185,129,0.5)';this.style.color='rgb(52,211,153)';this.style.background='rgba(16,185,129,0.1)';this.style.transform='scale(1.05)';}"
+              onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.55)';this.style.background='rgba(255,255,255,0.05)';} this.style.transform='scale(1)';"
+              onmousedown="this.style.transform='scale(0.93)';"
+              onmouseup="this.style.transform='scale(1)';"
+              data-active="${like === '1' ? '1' : ''}"
+              data-like-value="1" data-msg-index="${msgIndex}" aria-label="Útil">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+              Útil
+            </button>
+            ${like === '1' ? `<div style="position:absolute;top:-5px;right:-5px;color:rgb(52,211,153);animation:mt-sparkles-pop 0.35s cubic-bezier(0.34,1.56,0.64,1) both;">${cSparklesSvg}</div>` : ''}
+          </div>
+          <!-- No útil compact -->
+          <div style="position:relative;">
+            ${like === '0' ? `<div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(244,63,94,0.25),rgba(236,72,153,0.25));border-radius:8px;filter:blur(6px);pointer-events:none;"></div>` : ''}
+            <button ${busy ? 'disabled' : ''}
+              style="${btnBase}${dislikeStyle}${busy ? 'opacity:0.5;pointer-events:none;' : ''}position:relative;transition:all 0.15s,transform 0.1s;"
+              onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(244,63,94,0.5)';this.style.color='rgb(251,113,133)';this.style.background='rgba(244,63,94,0.1)';this.style.transform='scale(1.05)';}"
+              onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.55)';this.style.background='rgba(255,255,255,0.05)';} this.style.transform='scale(1)';"
+              onmousedown="this.style.transform='scale(0.93)';"
+              onmouseup="this.style.transform='scale(1)';"
+              data-active="${like === '0' ? '1' : ''}"
+              data-like-value="0" data-msg-index="${msgIndex}" aria-label="No útil">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
+              No útil
+            </button>
+          </div>
           ${m.confidence ? this.renderConfidenceBadge(m.confidence) : ''}
         </div>` : (m.confidence ? `<div style="margin-top:8px;">${this.renderConfidenceBadge(m.confidence)}</div>` : '');
 
       return `
         <div style="display:flex;gap:10px;margin-bottom:18px;${latest ? 'animation:mt-fade-in 0.3s ease;' : ''}">
-          <!-- Mini avatar -->
-          <div style="width:30px;height:30px;flex-shrink:0;margin-top:2px;border-radius:50%;background:linear-gradient(135deg,rgba(0,217,255,0.25),rgba(168,85,247,0.25));border:1px solid rgba(0,217,255,0.5);display:flex;align-items:center;justify-content:center;animation:mt-av-sphere-anim 2.5s ease-in-out infinite;">
-            <div style="width:11px;height:11px;border-radius:50%;background:radial-gradient(circle,rgba(0,217,255,0.9),rgba(99,102,241,0.7));box-shadow:0 0 8px rgba(0,217,255,0.8);"></div>
+          <!-- Mini avatar — mismo que el launcher -->
+          <div style="flex-shrink:0;margin-top:2px;">
+            <div class="mt-launcher-av" style="width:28px;height:28px;">
+              <div class="mt-launcher-av-sphere">
+                <div class="mt-launcher-av-core" style="width:10px;height:10px;"></div>
+              </div>
+              <div class="mt-launcher-av-orbit" style="inset:-5px;">
+                <div class="mt-launcher-av-dot" style="transform:rotate(45deg)"></div>
+                <div class="mt-launcher-av-dot" style="transform:rotate(225deg)"></div>
+              </div>
+            </div>
           </div>
           <div style="flex:1;min-width:0;">
-            <!-- Bubble -->
-            <div style="background:linear-gradient(135deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.11) 100%);border:1px solid rgba(255,255,255,0.14);border-radius:12px;padding:12px 14px;margin-bottom:${citations.length > 0 ? '8px' : '0'};">
-              <p style="color:rgba(255,255,255,0.9);font-size:13px;line-height:1.55;margin:0;font-family:'Roboto',sans-serif;white-space:pre-wrap;">${escapeHtml(m.text)}</p>
+            <!-- Bubble con hover glow -->
+            <div style="position:relative;margin-bottom:${citations.length > 0 ? '8px' : '0'};"
+              onmouseenter="this.children[0].style.opacity='1';"
+              onmouseleave="this.children[0].style.opacity='0';"
+            >
+              <div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(168,85,247,0.25),rgba(0,217,255,0.25));border-radius:14px;filter:blur(8px);opacity:0;transition:opacity 0.2s ease;pointer-events:none;"></div>
+              <div style="position:relative;background:linear-gradient(135deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.11) 100%);border:1px solid rgba(255,255,255,0.14);border-radius:12px;padding:12px 14px;">
+                <p style="color:rgba(255,255,255,0.9);font-size:13px;line-height:1.55;margin:0;font-family:system-ui,sans-serif;white-space:pre-wrap;">${escapeHtml(m.text)}</p>
+              </div>
             </div>
             <!-- Citations -->
             ${citations.length > 0 ? `
               <div style="margin-bottom:8px;">
                 <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
                   <div style="height:1px;flex:1;background:linear-gradient(to right,transparent,rgba(168,85,247,0.25),transparent);"></div>
-                  <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.1em;font-family:'Inter',sans-serif;">Evidencia</span>
+                  <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.1em;font-family:system-ui,sans-serif;">Evidencia</span>
                   <div style="height:1px;flex:1;background:linear-gradient(to right,transparent,rgba(168,85,247,0.25),transparent);"></div>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:4px;">
@@ -3392,7 +3497,7 @@
       return `
         <div style="display:flex;justify-content:flex-end;margin-bottom:14px;${latest ? 'animation:mt-fade-in 0.3s ease;' : ''}">
           <div style="max-width:82%;background:linear-gradient(135deg,rgba(0,217,255,0.18),rgba(168,85,247,0.18));border:1px solid rgba(0,217,255,0.28);border-radius:12px;padding:10px 13px;">
-            <p style="color:rgba(255,255,255,0.9);font-size:13px;line-height:1.5;margin:0;font-family:'Roboto',sans-serif;">${escapeHtml(m.text)}</p>
+            <p style="color:rgba(255,255,255,0.9);font-size:13px;line-height:1.5;margin:0;font-family:system-ui,sans-serif;">${escapeHtml(m.text)}</p>
           </div>
         </div>`;
     }
@@ -3442,7 +3547,7 @@
             <div style="position:relative;background:linear-gradient(to right,rgba(65,12,120,0.6),rgba(4,88,112,0.6));border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px 24px;overflow:hidden;">
               ${scanHtml}
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-                <span style="font-size:14px;color:rgba(255,255,255,0.7);font-family:'Roboto',sans-serif;">${text}</span>
+                <span style="font-size:14px;color:rgba(255,255,255,0.7);font-family:system-ui,sans-serif;">${text}</span>
                 <div style="display:flex;gap:4px;align-items:center;">
                   <div class="mt-loading-dot"></div>
                   <div class="mt-loading-dot"></div>
@@ -3523,8 +3628,7 @@
             <p class="mt-cpt-subtitle">Haz una pregunta y obtén respuestas<br>respaldadas por evidencia documental.</p>
           </div>
           <!-- Separador -->
-          <div style="width:100%;height:1px;background:linear-gradient(to right,transparent,rgba(0,217,255,0.2),transparent);${animate ? 'animation:mt-fade-in-up 0.4s ease-out both 0.26s;' : ''}flex-shrink:0;"></div>
-          <!-- Chips -->
+          <div style="width:100%;height:1px;background:linear-gradient(to right,transparent,rgba(0,217,255,0.2),transparent);${animate ? 'animation:mt-fade-in-up 0.4s ease-out both 0.26s;' : ''}flex-shrink:0;margin-bottom:12px;"></div>
         </div>
       `;
     }
@@ -3536,9 +3640,14 @@
         <div class="mt-header-anim-line"></div>
         <div class="mt-logo-section">
           <div class="mt-logo">
-            <div class="mt-logo-icon-wrap">
-              <div class="mt-logo-icon-glow"></div>
-              <div class="mt-logo-icon">${svgGraduationCap()}</div>
+            <div class="mt-launcher-av" style="width:40px;height:40px;flex-shrink:0;">
+              <div class="mt-launcher-av-sphere">
+                <div class="mt-launcher-av-core" style="width:16px;height:16px;"></div>
+              </div>
+              <div class="mt-launcher-av-orbit" style="inset:-7px;">
+                <div class="mt-launcher-av-dot" style="transform:rotate(45deg)"></div>
+                <div class="mt-launcher-av-dot" style="transform:rotate(225deg)"></div>
+              </div>
             </div>
             <div>
               <div class="mt-logo-name">ENIGMA</div>
@@ -3575,10 +3684,14 @@
       return `
         <div class="mt-input-dark-area">
           <div class="mt-input-dark-inner">
-            <form id="mt-form" class="mt-input-glass">
-              <input id="mt-input" style=";" placeholder="Haz una pregunta sobre los documentos..." autocomplete="off" />
-              <button type="submit" class="mt-btn-send-dark" aria-label="Enviar">${svgSend()}</button>
-            </form>
+            <div class="mt-input-wrap">
+              <div class="mt-input-glow"></div>
+              <form id="mt-form" class="mt-input-glass">
+                <div class="mt-input-scanner"></div>
+                <input id="mt-input" placeholder="Haz una pregunta sobre los documentos..." autocomplete="off" />
+                <button type="submit" class="mt-btn-send-dark" aria-label="Enviar">${svgSend()}</button>
+              </form>
+            </div>
           </div>
         </div>
       `;
@@ -3612,17 +3725,24 @@
     }
 
     bindSuggestionBtns() {
-      this.shadowRoot.querySelectorAll('.mt-sug-btn').forEach(btn => {
-        btn.onclick = () => {
-          const suggestion = btn.getAttribute('data-suggestion');
-          if (!suggestion) return;
-          const input = this.shadowRoot.querySelector('#mt-input');
-          if (input) {
-            input.value = suggestion;
-            this.sendMessage();
-          }
-        };
-      });
+    
+      if (this._suggestionHandler) {
+        this.shadowRoot.removeEventListener('click', this._suggestionHandler);
+      }
+      this._suggestionHandler = (e) => {
+        const btn = e.target.closest('.mt-sug-btn');
+        if (!btn) return;
+        const suggestion = btn.getAttribute('data-suggestion');
+        if (!suggestion) return;
+        e.stopPropagation();
+        const input = this.shadowRoot.querySelector('#mt-input');
+        if (input) {
+          input.value = suggestion;
+          input.focus();
+          this.sendMessage();
+        }
+      };
+      this.shadowRoot.addEventListener('click', this._suggestionHandler);
     }
 
     bindRefsToggles() {
@@ -3846,7 +3966,7 @@
               : `<header class="mt-header mt-header--dark mt-header--compact-dk">
                   <div class="mt-header-anim-line"></div>
                   ${view === 'history'
-                    ? `<button type="button" class="mt-btn-maximize-dark" data-action="history-back" aria-label="Volver al chat" style="gap:4px;font-size:12px;font-family:'Inter',sans-serif;">
+                    ? `<button type="button" class="mt-btn-maximize-dark" data-action="history-back" aria-label="Volver al chat" style="gap:4px;font-size:12px;font-family:system-ui,sans-serif;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                       </button>`
                     : `<button type="button" class="mt-btn-maximize-dark" data-action="open-history" aria-label="Historial">
@@ -3854,7 +3974,6 @@
                       </button>`
                   }
                   <div class="mt-compact-logo">
-                    <div class="mt-compact-logo-icon">${svgGraduationCap()}</div>
                     <div>
                       <div class="mt-compact-logo-name">${view === 'history' ? 'Historial' : 'ENIGMA'}</div>
                       <div class="mt-compact-logo-sub">${view === 'history' ? 'Conversaciones anteriores' : 'Asistente Académico'}</div>
