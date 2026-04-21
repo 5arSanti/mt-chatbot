@@ -2482,6 +2482,10 @@
       return this.getAttribute("course-id");
     }
 
+    get logoUrl() {
+      return this.getAttribute("logo-url") || null;
+    }
+
     get title() {
       return this.getAttribute("title") || "Asistente chatbot";
     }
@@ -3603,7 +3607,10 @@
 
             <!-- Título + subtítulo -->
             <div style="${animate ? 'animation:mt-fade-in-up 0.45s ease 0.2s both;' : ''}">
-              <h2 class="mt-es-title">Bienvenido a ENIGMA</h2>
+              ${this.logoUrl
+                ? `<img src="${this.logoUrl}" alt="ENIGMA" style="height:40px;max-width:200px;object-fit:contain;display:block;margin:0 auto 8px;" />`
+                : `<h2 class="mt-es-title">Bienvenido a ENIGMA</h2>`
+              }
               <p class="mt-es-subtitle">
                 Tu asistente académico inteligente. Haz una pregunta y obtén respuestas
                 respaldadas por evidencia documental.
@@ -3639,7 +3646,10 @@
           </div>
           <!-- Título y subtítulo -->
           <div style="margin-top:20px;${animate ? 'animation:mt-fade-in-up 0.5s ease-out both 0.18s;' : ''}">
-            <h3 class="mt-cpt-title">ENIGMA</h3>
+            ${this.logoUrl
+              ? `<img src="${this.logoUrl}" alt="ENIGMA" style="height:28px;max-width:130px;object-fit:contain;display:block;margin:0 auto 4px;" />`
+              : `<h3 class="mt-cpt-title">ENIGMA</h3>`
+            }
             <p class="mt-cpt-subtitle">Haz una pregunta y obtén respuestas<br>respaldadas por evidencia documental.</p>
           </div>
           <!-- Separador -->
@@ -3665,7 +3675,10 @@
               </div>
             </div>
             <div>
-              <div class="mt-logo-name">ENIGMA</div>
+              ${this.logoUrl
+                ? `<img src="${this.logoUrl}" alt="ENIGMA" class="mt-logo-img" style="height:28px;max-width:140px;object-fit:contain;display:block;" />`
+                : `<div class="mt-logo-name">ENIGMA</div>`
+              }
               <div class="mt-logo-subtitle">Asistente Académico AI</div>
             </div>
           </div>
@@ -3990,7 +4003,12 @@
                   }
                   <div class="mt-compact-logo">
                     <div>
-                      <div class="mt-compact-logo-name">${view === 'history' ? 'Historial' : 'ENIGMA'}</div>
+                      ${view === 'history'
+                        ? `<div class="mt-compact-logo-name">Historial</div>`
+                        : (this.logoUrl
+                          ? `<img src="${this.logoUrl}" alt="ENIGMA" style="height:18px;max-width:100px;object-fit:contain;display:block;" />`
+                          : `<div class="mt-compact-logo-name">ENIGMA</div>`)
+                      }
                       <div class="mt-compact-logo-sub">${view === 'history' ? 'Conversaciones anteriores' : 'Asistente Académico'}</div>
                     </div>
                   </div>
