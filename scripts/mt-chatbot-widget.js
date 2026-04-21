@@ -5,6 +5,10 @@
 (function () {
   "use strict";
 
+  /** Logo ENIGMA por defecto; se puede sobrescribir con el atributo `logo-url` en el elemento. */
+  const DEFAULT_LOGO_URL =
+    "https://storage.googleapis.com/etraining-lms/Enigma/enigmaV1.webp";
+
   // --- Utilidades ----------------------------------------------------------
 
   function escapeHtml(s) {
@@ -2483,7 +2487,7 @@
     }
 
     get logoUrl() {
-      return this.getAttribute("logo-url") || null;
+      return this.getAttribute("logo-url") || DEFAULT_LOGO_URL;
     }
 
     get title() {
