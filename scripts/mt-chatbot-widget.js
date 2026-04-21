@@ -1821,6 +1821,17 @@
     height: 100vh !important;
     height: 100dvh !important;
   }
+  /* En mobile el chat compacto ocupa toda la pantalla */
+  .mt-shell {
+    position: fixed !important;
+    inset: 0 !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    border-radius: 0 !important;
+  }
   .mt-features-grid {
     grid-template-columns: 1fr;
   }
@@ -1996,6 +2007,8 @@
   border-radius: 8px;
   padding: 16px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .mt-citation-card:hover {
@@ -2023,6 +2036,8 @@
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .mt-citation-more {
@@ -3180,7 +3195,7 @@
 
       return `
         <div id="${cardId}"
-          style="background:linear-gradient(135deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.12) 100%);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:16px;animation:mt-fade-in 0.35s ease ${index * 0.1}s both;transition:border-color 0.2s ease,box-shadow 0.2s ease;"
+          style="background:linear-gradient(135deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.12) 100%);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:16px;animation:mt-fade-in 0.35s ease ${index * 0.1}s both;transition:border-color 0.2s ease,box-shadow 0.2s ease;overflow:hidden;min-width:0;"
           onmouseenter="this.style.borderColor='rgba(0,217,255,0.4)';this.style.boxShadow='0 0 0 1px rgba(0,217,255,0.1),0 0 20px rgba(0,217,255,0.1)';var m=this.querySelector('.mt-cc-more');if(m)m.style.opacity='1';"
           onmouseleave="this.style.borderColor='rgba(255,255,255,0.12)';this.style.boxShadow='none';var m=this.querySelector('.mt-cc-more');if(m&&this.dataset.ccExpanded!=='1')m.style.opacity='0';"
         >
@@ -3201,7 +3216,7 @@
           </div>
           ${c.snippet ? `
             <div class="mt-cc-snippet-wrap" style="padding-left:12px;border-left:2px solid rgba(168,85,247,0.4);overflow:hidden;transition:all 0.25s ease;">
-              <p class="mt-cc-snippet" style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.5;margin:0;font-family:system-ui,sans-serif;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">"${escapeHtml(c.snippet)}"</p>
+              <p class="mt-cc-snippet" style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.5;margin:0;font-family:system-ui,sans-serif;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;overflow-wrap:break-word;">"${escapeHtml(c.snippet)}"</p>
             </div>
             <button type="button" class="mt-cc-more"
               style="display:block;width:100%;text-align:right;font-size:12px;font-family:system-ui,sans-serif;color:rgba(0,217,255,0.8);margin-top:8px;transition:opacity 0.2s ease,color 0.2s ease;background:none;border:none;cursor:pointer;padding:0;opacity:0;"
@@ -3349,7 +3364,7 @@
                   <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.08em;font-family:system-ui,sans-serif;">Evidencia Documental</span>
                   <div style="height:1px;flex:1;background:linear-gradient(to right,transparent,rgba(168,85,247,0.3),transparent);"></div>
                 </div>
-                <div style="display:grid;gap:12px;">
+                <div style="display:grid;gap:12px;min-width:0;overflow:hidden;">
                   ${citations.map((c, i) => this.renderCitationCard(c, i)).join('')}
                 </div>
               </div>
@@ -3397,7 +3412,7 @@
             </button>` : ''}
           </div>
           <!-- Snippet (hidden by default) -->
-          ${snippet ? `<p class="mt-cpill-snip" style="display:none;margin:8px 0 0;font-size:11px;color:rgba(255,255,255,0.55);font-family:system-ui,sans-serif;line-height:1.5;border-top:1px solid rgba(255,255,255,0.07);padding-top:8px;">${snippet}</p>` : ''}
+          ${snippet ? `<p class="mt-cpill-snip" style="display:none;margin:8px 0 0;font-size:11px;color:rgba(255,255,255,0.55);font-family:system-ui,sans-serif;line-height:1.5;border-top:1px solid rgba(255,255,255,0.07);padding-top:8px;word-break:break-word;overflow-wrap:break-word;">${snippet}</p>` : ''}
         </div>`;
     }
 
@@ -3790,11 +3805,11 @@
     bindShell() {
       const root = this.shadowRoot;
       root
-        .querySelector("[data-action='toggle-chat']")
-        ?.addEventListener("click", (e) => {
+        .querySelectorAll("[data-action='toggle-chat']")
+        .forEach((btn) => btn.addEventListener("click", (e) => {
           e.stopPropagation();
           this.toggleChat();
-        });
+        }));
       root
         .querySelector("[data-action='open-history']")
         ?.addEventListener("click", (e) => {
@@ -3979,9 +3994,10 @@
                       <div class="mt-compact-logo-sub">${view === 'history' ? 'Conversaciones anteriores' : 'Asistente Académico'}</div>
                     </div>
                   </div>
-                  <button type="button" class="mt-btn-maximize-dark" data-action="expand-toggle" aria-label="Ampliar">
-                    ${svgMaximize()}
-                  </button>
+                  ${window.innerWidth <= 600
+                    ? `<button type="button" class="mt-btn-maximize-dark" data-action="toggle-chat" aria-label="Cerrar chat">${svgClose()}</button>`
+                    : `<button type="button" class="mt-btn-maximize-dark" data-action="expand-toggle" aria-label="Ampliar">${svgMaximize()}</button>`
+                  }
                 </header>`
             }
             ${mainContent}
@@ -4019,6 +4035,10 @@
 
   function svgMinimize() {
     return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg>`;
+  }
+
+  function svgClose() {
+    return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
   }
 
   function svgDoc() {
