@@ -2854,7 +2854,7 @@
     }
 
     renderHistoryCompact() {
-      const { historyLoading, historyError, historySearch = '', expandedHistoryId } = this.state;
+      const { historyLoading, historyError, historySearch = '', historyFilter = 'all', expandedHistoryId } = this.state;
 
       if (historyLoading) return this.renderHistoryCompactLoading();
 
@@ -2911,11 +2911,32 @@
               </div>`;
           }).join('');
 
+      const filterDefs = [
+        { value: 'all',      label: 'Todas',           icon: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` },
+        { value: 'liked',    label: 'Útiles',          icon: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>` },
+        { value: 'disliked', label: 'No útiles',       icon: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>` },
+        { value: 'alta',     label: 'Alta conf.',      icon: '' },
+        { value: 'media',    label: 'Conf. media',     icon: '' },
+        { value: 'baja',     label: 'Baja conf.',      icon: '' },
+      ];
+      const filterChipsHtml = filterDefs.map(f => {
+        const active = (historyFilter || 'all') === f.value;
+        const activeStyle = `border:1px solid rgba(6,182,212,0.5);background:linear-gradient(to right,rgba(6,182,212,0.25),rgba(168,85,247,0.25));color:#fff;`;
+        const inactiveStyle = `border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.55);`;
+        return `<button type="button" data-action="history-filter" data-filter="${f.value}" data-active="${active ? '1' : '0'}"
+          style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-family:system-ui,sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.2s;${active ? activeStyle : inactiveStyle}"
+          ontouchstart="" 
+          onmouseenter="if(this.dataset.active!=='1'){this.style.background='rgba(255,255,255,0.1)';this.style.borderColor='rgba(255,255,255,0.25)';this.style.color='rgba(255,255,255,0.85)';}"
+          onmouseleave="if(this.dataset.active!=='1'){this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.55)';}"
+        >${f.icon}${f.label}</button>`;
+      }).join('');
+
       const bgTop = 'linear-gradient(135deg,#0c1029 0%,#151836 100%)';
       return `
         <div class="mt-body" style="overflow-y:auto !important;display:block !important;padding:0 !important;">
-          <div style="position:sticky;top:0;z-index:5;background:${bgTop};padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.07);">
-            <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:7px 11px;"
+          <div style="position:sticky;top:0;z-index:5;background:${bgTop};padding:10px 12px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">
+            <!-- Buscador -->
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:7px 11px;margin-bottom:8px;"
               onfocusin="this.style.borderColor='rgba(0,217,255,0.4)';"
               onfocusout="this.style.borderColor='rgba(255,255,255,0.12)';">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" style="flex-shrink:0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -2929,6 +2950,15 @@
                 onmouseleave="this.style.color='rgba(255,255,255,0.4)';">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>` : ''}
+            </div>
+            <!-- Filtros (wrap en múltiples filas) -->
+            <div style="display:flex;align-items:flex-start;gap:6px;">
+              <span style="flex-shrink:0;display:flex;align-items:center;height:24px;color:rgba(255,255,255,0.3);">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              </span>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                ${filterChipsHtml}
+              </div>
             </div>
           </div>
           <div style="padding:8px 10px;">${itemsHtml}</div>
