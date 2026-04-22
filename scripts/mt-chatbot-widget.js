@@ -2572,24 +2572,46 @@
           || this.shadowRoot?.querySelector('.mt-body');
     }
 
-    /** render() preservando la posición de scroll del historial. */
+    /** Guarda el estado open/closed de todos los acordeones de citaciones. */
+    _saveCitAccordions() {
+      return Array.from(this.shadowRoot?.querySelectorAll('.mt-cit-body') || [])
+        .map(el => el.style.display !== 'none');
+    }
+
+    /** Restaura el estado open/closed de los acordeones tras un re-render. */
+    _restoreCitAccordions(states) {
+      const els = this.shadowRoot?.querySelectorAll('.mt-cit-body') || [];
+      els.forEach((el, i) => {
+        const open = states[i] || false;
+        el.style.display = open ? 'block' : 'none';
+        const btn  = el.previousElementSibling;
+        const chev = btn?.querySelector('.mt-cit-chev');
+        if (chev) chev.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+      });
+    }
+
+    /** render() preservando la posición de scroll del historial y el estado de acordeones. */
     renderKeepHistScroll() {
-      const el  = this._histScrollEl();
-      const pos = el ? el.scrollTop : 0;
+      const el     = this._histScrollEl();
+      const pos    = el ? el.scrollTop : 0;
+      const citStates = this._saveCitAccordions();
       this.render();
       const nel = this._histScrollEl();
       if (nel) nel.scrollTop = pos;
+      this._restoreCitAccordions(citStates);
     }
 
-    /** render() preservando la posición de scroll del chat. */
+    /** render() preservando la posición de scroll del chat y el estado de acordeones. */
     renderKeepChatScroll() {
       const el  = this.shadowRoot?.querySelector('#mt-messages');
       const pos = el ? el.scrollTop : null;
+      const citStates = this._saveCitAccordions();
       this.render();
       if (pos !== null) {
         const nel = this.shadowRoot?.querySelector('#mt-messages');
         if (nel) nel.scrollTop = pos;
       }
+      this._restoreCitAccordions(citStates);
     }
 
     async setLikeForHistoryItem(itemId, likeValue) {
@@ -2994,9 +3016,9 @@
                             <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);font-family:system-ui,sans-serif;">Evidencia Documental</span>
                             <span style="background:rgba(6,182,212,0.2);border:1px solid rgba(6,182,212,0.4);color:#22d3ee;font-size:10px;font-weight:700;padding:0 5px;border-radius:999px;line-height:1.6;">${cCitations.length}</span>
                           </div>
-                          <svg class="mt-cit-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" style="transform:rotate(180deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+                          <svg class="mt-cit-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" style="transform:rotate(0deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
                         </button>
-                        <div style="display:block;padding-top:6px;">
+                        <div class="mt-cit-body" style="display:none;padding-top:6px;">
                           <div style="display:grid;gap:6px;">
                             ${cCitations.map((c, ci) => this.renderCitationCard(c, ci)).join('')}
                           </div>
@@ -3220,28 +3242,7 @@
                       <h4 style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;font-family:system-ui,sans-serif;margin:0 0 12px;">Respuesta Completa</h4>
                       <p style="font-size:14px;color:rgba(255,255,255,0.8);line-height:1.7;margin:0;font-family:system-ui,sans-serif;white-space:pre-wrap;">${escapeHtml(item.answer || '')}</p>
                     </div>
-                    ${mappedCitations.length > 0 ? `
-                      <div style="margin-bottom:16px;">
-                        <button type="button"
-                          onclick="(function(btn){var body=btn.nextElementSibling;var chev=btn.querySelector('.mt-cit-chev');if(!body||!chev)return;var open=body.style.display!=='none';body.style.display=open?'none':'block';chev.style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)"
-                          style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(to right,rgba(6,182,212,0.12),rgba(168,85,247,0.12));border:1px solid rgba(6,182,212,0.22);border-radius:10px;cursor:pointer;transition:background 0.2s,border-color 0.2s;"
-                          onmouseenter="this.style.background='linear-gradient(to right,rgba(6,182,212,0.2),rgba(168,85,247,0.2))';this.style.borderColor='rgba(6,182,212,0.4)';"
-                          onmouseleave="this.style.background='linear-gradient(to right,rgba(6,182,212,0.12),rgba(168,85,247,0.12))';this.style.borderColor='rgba(6,182,212,0.22)';">
-                          <div style="display:flex;align-items:center;gap:8px;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(34,211,238,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                            <span style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.85);font-family:system-ui,sans-serif;">Evidencia Documental</span>
-                            <span style="background:rgba(6,182,212,0.2);border:1px solid rgba(6,182,212,0.4);color:#22d3ee;font-size:11px;font-weight:700;font-family:system-ui,sans-serif;padding:1px 7px;border-radius:999px;line-height:1.6;">${mappedCitations.length}</span>
-                          </div>
-                          <svg class="mt-cit-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" style="transform:rotate(180deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
-                        </button>
-                        <div style="display:block;padding-top:10px;">
-                          <div style="display:grid;gap:10px;">
-                            ${mappedCitations.map((c, ci) => this.renderCitationCard(c, ci)).join('')}
-                          </div>
-                        </div>
-                      </div>
-                    ` : ''}
-                    <div style="padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <div style="padding-top:14px; margin-bottom: 20px; border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                       <span style="font-size:14px;color:rgba(255,255,255,0.5);font-family:system-ui,sans-serif;">¿Te fue útil?</span>
                       <div style="display:flex;align-items:center;gap:8px;">
                         <div style="position:relative;">
@@ -3275,6 +3276,28 @@
                       ${hConfHtml}
                       ${hLike != null ? `<span style="font-size:12px;color:rgba(255,255,255,0.4);font-family:'Inter',sans-serif;animation:mt-fade-in 0.3s ease;">Gracias por tu feedback</span>` : ''}
                     </div>
+                    ${mappedCitations.length > 0 ? `
+                      <div style="margin-bottom:16px;">
+                        <button type="button"
+                          onclick="(function(btn){var body=btn.nextElementSibling;var chev=btn.querySelector('.mt-cit-chev');if(!body||!chev)return;var open=body.style.display!=='none';body.style.display=open?'none':'block';chev.style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)"
+                          style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(to right,rgba(6,182,212,0.12),rgba(168,85,247,0.12));border:1px solid rgba(6,182,212,0.22);border-radius:10px;cursor:pointer;transition:background 0.2s,border-color 0.2s;"
+                          onmouseenter="this.style.background='linear-gradient(to right,rgba(6,182,212,0.2),rgba(168,85,247,0.2))';this.style.borderColor='rgba(6,182,212,0.4)';"
+                          onmouseleave="this.style.background='linear-gradient(to right,rgba(6,182,212,0.12),rgba(168,85,247,0.12))';this.style.borderColor='rgba(6,182,212,0.22)';">
+                          <div style="display:flex;align-items:center;gap:8px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(34,211,238,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            <span style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.85);font-family:system-ui,sans-serif;">Evidencia Documental</span>
+                            <span style="background:rgba(6,182,212,0.2);border:1px solid rgba(6,182,212,0.4);color:#22d3ee;font-size:11px;font-weight:700;font-family:system-ui,sans-serif;padding:1px 7px;border-radius:999px;line-height:1.6;">${mappedCitations.length}</span>
+                          </div>
+                          <svg class="mt-cit-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" style="transform:rotate(0deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                        <div class="mt-cit-body" style="display:none;padding-top:10px;">
+                          <div style="display:grid;gap:10px;">
+                            ${mappedCitations.map((c, ci) => this.renderCitationCard(c, ci)).join('')}
+                          </div>
+                        </div>
+                      </div>
+                    ` : ''}
+                    
                   </div>`;
                 })() : ''}
               </div>
@@ -3606,9 +3629,9 @@
               <span style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.85);font-family:system-ui,sans-serif;">Evidencia Documental</span>
               <span style="background:rgba(6,182,212,0.2);border:1px solid rgba(6,182,212,0.4);color:#22d3ee;font-size:11px;font-weight:700;font-family:system-ui,sans-serif;padding:1px 7px;border-radius:599px;line-height:1.6;">${citations.length}</span>
             </div>
-            <svg class="mt-cit-chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" style="transform:rotate(180deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+            <svg class="mt-cit-chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" style="transform:rotate(0deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
-          <div style="display:block;padding-top:12px;">
+          <div class="mt-cit-body" style="display:none;padding-top:12px;">
             <div style="display:grid;gap:12px;min-width:0;overflow:hidden;">
               ${citations.map((c, i) => this.renderCitationCard(c, i, latest)).join('')}
             </div>
@@ -3766,9 +3789,9 @@
                     <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);font-family:system-ui,sans-serif;">Evidencia Documental</span>
                     <span style="background:rgba(6,182,212,0.2);border:1px solid rgba(6,182,212,0.4);color:#22d3ee;font-size:10px;font-weight:700;padding:0 5px;border-radius:999px;line-height:1.6;">${citations.length}</span>
                   </div>
-                  <svg class="mt-cit-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" style="transform:rotate(180deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+                  <svg class="mt-cit-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" style="transform:rotate(0deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
-                <div style="display:block;padding-top:6px;">
+                <div class="mt-cit-body" style="display:none;padding-top:6px;">
                   <div style="display:flex;flex-direction:column;gap:4px;">
                     ${citations.map((c, i) => this.renderCompactCitationPill(c, i)).join('')}
                   </div>
