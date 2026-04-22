@@ -3457,8 +3457,8 @@
       return `
         <div id="${cardId}"
           style="background:linear-gradient(135deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.12) 100%);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:16px;${animate ? `animation:mt-fade-in 0.35s ease ${index * 0.1}s both;` : ''}transition:border-color 0.2s ease,box-shadow 0.2s ease;overflow:hidden;min-width:0;"
-          onmouseenter="this.style.borderColor='rgba(0,217,255,0.4)';this.style.boxShadow='0 0 0 1px rgba(0,217,255,0.1),0 0 20px rgba(0,217,255,0.1)';var m=this.querySelector('.mt-cc-more');if(m)m.style.opacity='1';"
-          onmouseleave="this.style.borderColor='rgba(255,255,255,0.12)';this.style.boxShadow='none';var m=this.querySelector('.mt-cc-more');if(m&&this.dataset.ccExpanded!=='1')m.style.opacity='0';"
+          onmouseenter="this.style.borderColor='rgba(0,217,255,0.4)';this.style.boxShadow='0 0 0 1px rgba(0,217,255,0.1),0 0 20px rgba(0,217,255,0.1)';"
+          onmouseleave="this.style.borderColor='rgba(255,255,255,0.12)';this.style.boxShadow='none';"
         >
           <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:${hasSubtitle ? '12px' : '0'};">
             <div style="flex-shrink:0;width:40px;height:40px;background:linear-gradient(to bottom right,rgba(0,217,255,0.2),rgba(168,85,247,0.2));border-radius:8px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,217,255,0.3);color:#00d9ff;">
@@ -3480,12 +3480,16 @@
               <p class="mt-cc-snippet" style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.5;margin:0;font-family:system-ui,sans-serif;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;overflow-wrap:break-word;">"${escapeHtml(c.snippet)}"</p>
             </div>
             <button type="button" class="mt-cc-more"
-              style="display:block;width:100%;text-align:right;font-size:12px;font-family:system-ui,sans-serif;color:rgba(0,217,255,0.8);margin-top:8px;transition:opacity 0.2s ease,color 0.2s ease;background:none;border:none;cursor:pointer;padding:0;opacity:0;"
+              style="display:none;width:100%;text-align:right;font-size:12px;font-family:system-ui,sans-serif;color:rgba(0,217,255,0.8);margin-top:8px;background:none;border:none;cursor:pointer;padding:0;"
               onclick="
                 var card = this.parentElement;
                 var wrap = card.querySelector('.mt-cc-snippet-wrap');
                 var p = card.querySelector('.mt-cc-snippet');
                 if (!p || !wrap) return;
+                var scrollEl = null;
+                var el = card;
+                while (el) { if (el.scrollHeight > el.clientHeight + 1) { scrollEl = el; break; } el = el.parentElement; }
+                var savedScroll = scrollEl ? scrollEl.scrollTop : 0;
                 var isExp = card.dataset.ccExpanded === '1';
                 if (isExp) {
                   p.style.display = '-webkit-box';
@@ -3495,7 +3499,6 @@
                   wrap.style.overflow = 'hidden';
                   this.textContent = 'Ver más →';
                   card.dataset.ccExpanded = '';
-                  this.style.opacity = '0';
                 } else {
                   p.style.display = 'block';
                   p.style.webkitLineClamp = 'unset';
@@ -3503,8 +3506,8 @@
                   wrap.style.overflow = 'visible';
                   this.textContent = 'Ver menos ←';
                   card.dataset.ccExpanded = '1';
-                  this.style.opacity = '1';
                 }
+                if (scrollEl) requestAnimationFrame(function(){ scrollEl.scrollTop = savedScroll; });
               "
               onmouseenter="this.style.color='rgba(0,217,255,1)';"
               onmouseleave="this.style.color='rgba(0,217,255,0.8)';"
@@ -4081,7 +4084,25 @@
           const open = !anim.classList.contains("is-open");
           anim.classList.toggle("is-open", open);
           btn.setAttribute("aria-expanded", String(open));
+          // Al abrir el acordeón las tarjetas ya son visibles: re-evaluar botones
+          if (open) requestAnimationFrame(() => setTimeout(() => this._initCitationMoreBtns(), 80));
         };
+      });
+    }
+
+    /** Engancha los botones de acordeón ".mt-cit-body" para re-evaluar "Ver más" al abrirse. */
+    bindCitBodyToggles() {
+      this.shadowRoot.querySelectorAll('.mt-cit-body').forEach(body => {
+        const btn = body.previousElementSibling;
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+          // El onclick inline ya cambió display; si ahora está visible → evaluar
+          requestAnimationFrame(() => {
+            if (body.style.display !== 'none') {
+              setTimeout(() => this._initCitationMoreBtns(), 80);
+            }
+          });
+        });
       });
     }
 
@@ -4154,6 +4175,7 @@
       });
 
       this.bindRefsToggles();
+      this.bindCitBodyToggles();
       this.bindHistoryDayCards();
       this.bindLikeButtons();
       this.bindSuggestionBtns();
@@ -4161,18 +4183,35 @@
       this._initCitationMoreBtns();
     }
 
-    /** Oculta los botones "Ver más" en tarjetas donde el snippet no está realmente truncado. */
+    /** Muestra "Ver más" solo en tarjetas donde el snippet está realmente truncado. */
     _initCitationMoreBtns() {
-      requestAnimationFrame(() => {
+      const check = () => {
         this.shadowRoot?.querySelectorAll('.mt-cc-snippet-wrap').forEach(wrap => {
           const p   = wrap.querySelector('.mt-cc-snippet');
           const btn = wrap.parentElement?.querySelector('.mt-cc-more');
           if (!p || !btn) return;
-          if (p.scrollHeight <= p.clientHeight + 2) {
-            btn.style.display = 'none';
+
+          // 1. Medir primero la altura CON clamp activo
+          const clampedH = p.getBoundingClientRect().height;
+
+          // 2. Quitar el clamp y forzar reflow para medir la altura real
+          p.style.display         = 'block';
+          p.style.webkitLineClamp = 'unset';
+          p.style.overflow        = 'visible';
+          const fullH = p.scrollHeight;
+
+          // 3. Restaurar clamp
+          p.style.display         = '-webkit-box';
+          p.style.webkitLineClamp = '3';
+          p.style.overflow        = 'hidden';
+
+          if (fullH > clampedH + 4) {
+            btn.style.display = 'block';
           }
         });
-      });
+      };
+      // Doble frame + timeout para asegurar que el Shadow DOM pintó completamente
+      requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(check, 80)));
     }
 
     bindHistorySearch() {
