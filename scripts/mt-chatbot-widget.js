@@ -2486,6 +2486,14 @@
       return this.getAttribute("course-id");
     }
 
+    get studentName() {
+      return this.getAttribute("student-name");
+    }
+
+    get courseName() {
+      return this.getAttribute("course-name");
+    }
+
     get logoUrl() {
       return this.getAttribute("logo-url") || DEFAULT_LOGO_URL;
     }
@@ -2537,7 +2545,7 @@
       const prevLike = msg.like ?? null;
       msg.like = nextLike;
       msg.likeLoading = true;
-      this.render();
+      this.renderKeepChatScroll();
 
       try {
         const response = await fetch(this.likeUrl, {
@@ -2554,7 +2562,60 @@
         msg.like = prevLike;
       } finally {
         msg.likeLoading = false;
-        this.render();
+        this.renderKeepChatScroll();
+      }
+    }
+
+    /** Devuelve el elemento scrollable del historial según la vista activa. */
+    _histScrollEl() {
+      return this.shadowRoot?.querySelector('.mt-history-scroll')
+          || this.shadowRoot?.querySelector('.mt-body');
+    }
+
+    /** render() preservando la posición de scroll del historial. */
+    renderKeepHistScroll() {
+      const el  = this._histScrollEl();
+      const pos = el ? el.scrollTop : 0;
+      this.render();
+      const nel = this._histScrollEl();
+      if (nel) nel.scrollTop = pos;
+    }
+
+    /** render() preservando la posición de scroll del chat. */
+    renderKeepChatScroll() {
+      const el  = this.shadowRoot?.querySelector('#mt-messages');
+      const pos = el ? el.scrollTop : null;
+      this.render();
+      if (pos !== null) {
+        const nel = this.shadowRoot?.querySelector('#mt-messages');
+        if (nel) nel.scrollTop = pos;
+      }
+    }
+
+    async setLikeForHistoryItem(itemId, likeValue) {
+      const item = this.state.historyItems.find(i => (i.request_id || '') === itemId);
+      if (!item || !itemId) return;
+      if (item.likeLoading) return;
+
+      const nextLike = normalizeLikeValue(item.like) === likeValue ? null : likeValue;
+      const prevLike = normalizeLikeValue(item.like) ?? null;
+      item.like = nextLike;
+      item.likeLoading = true;
+      this.renderKeepHistScroll();
+
+      try {
+        const response = await fetch(this.likeUrl, {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ request_id: itemId, like: nextLike }),
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      } catch {
+        item.like = prevLike;
+      } finally {
+        item.likeLoading = false;
+        this.renderKeepHistScroll();
       }
     }
 
@@ -2641,18 +2702,21 @@
       this.state.messages.push({ role: "user", text: question, t: Date.now() });
       this.state.loading = true;
       this.state.loadingPhase = "listening";
+      this.state._scrollToBottom = true;
       this.render();
       if (input) input.value = "";
 
       const t1 = setTimeout(() => {
         if (!this.state.loading) return;
         this.state.loadingPhase = "thinking";
+        this.state._scrollToBottom = true;
         this.render();
       }, 600);
 
       const t2 = setTimeout(() => {
         if (!this.state.loading) return;
         this.state.loadingPhase = "responding";
+        this.state._scrollToBottom = true;
         this.render();
       }, 1800);
 
@@ -2673,6 +2737,7 @@
         const citations = mapCitationsFromApi(data.citations);
 
         this.state.loadingPhase = "showing-evidence";
+        this.state._scrollToBottom = true;
         this.render();
         await new Promise((r) => setTimeout(r, 400));
 
@@ -2697,6 +2762,7 @@
 
       this.state.loading = false;
       this.state.loadingPhase = "listening";
+      this.state._scrollToBottom = true;
       this.render();
     }
 
@@ -2854,9 +2920,10 @@
     }
 
     renderHistoryCompact() {
-      const { historyLoading, historyError, historySearch = '', historyFilter = 'all', expandedHistoryId } = this.state;
+      const { historyLoading, historyLoaded, historyError, historySearch = '', historyFilter = 'all', expandedHistoryId } = this.state;
+      const isRefreshing = historyLoading && historyLoaded;
 
-      if (historyLoading) return this.renderHistoryCompactLoading();
+      if (historyLoading && !historyLoaded) return this.renderHistoryCompactLoading();
 
       // Items ya filtrados por el servidor; solo ordenar por fecha desc
       const items = [...(this.state.historyItems || [])].sort(
@@ -2898,16 +2965,76 @@
                   <div style="display:flex;align-items:center;gap:8px;">
                     <span style="font-size:10px;color:rgba(255,255,255,0.35);font-family:system-ui,sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(date)}</span>
                     ${likeHtml}
-                    ${confColor ? `<span style="width:6px;height:6px;border-radius:50%;background:${confColor};box-shadow:0 0 4px ${confColor};flex-shrink:0;"></span>` : ''}
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s;transform:rotate(${isOpen ? '180' : '0'}deg);"><polyline points="6 9 12 15 18 9"/></svg>
                   </div>
                 </button>
-                ${isOpen && item.answer ? `
+                ${isOpen && item.answer ? (() => {
+                  const cLike = normalizeLikeValue(item.like);
+                  const cBusy = item.likeLoading;
+                  const cSparklesSvg = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>`;
+                  const cBase      = 'display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11px;font-family:\'Inter\',sans-serif;font-weight:500;cursor:pointer;border:1px solid;transition:all 0.15s;';
+                  const cLikeOn    = 'background:rgba(16,185,129,0.2);border-color:rgba(16,185,129,0.5);color:rgb(52,211,153);';
+                  const cLikeOff   = 'background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.55);';
+                  const cDislikeOn = 'background:rgba(244,63,94,0.2);border-color:rgba(244,63,94,0.5);color:rgb(251,113,133);';
+                  const cDislikeOff= 'background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.55);';
+                  const cConfHtml = this.renderConfidenceBadgeCompact(item.confidence);
+                  const cCitations = (item.citations || []).map ? mapCitationsFromApi(item.citations || []) : [];
+                  return `
                   <div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.12);">
                     <p style="margin:0 0 10px;font-family:system-ui,sans-serif;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.6;">${escapeHtml(item.answer)}</p>
-                    ${this.renderConfidenceBadge(item.confidence)}
-                  </div>
-                ` : ''}
+                    ${cCitations.length > 0 ? `
+                      <div style="margin-bottom:10px;">
+                        <button type="button"
+                          onclick="(function(btn){var body=btn.nextElementSibling;var chev=btn.querySelector('.mt-cit-chev');if(!body||!chev)return;var open=body.style.display!=='none';body.style.display=open?'none':'block';chev.style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)"
+                          style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:linear-gradient(to right,rgba(6,182,212,0.1),rgba(168,85,247,0.1));border:1px solid rgba(6,182,212,0.2);border-radius:8px;cursor:pointer;transition:background 0.2s;"
+                          onmouseenter="this.style.background='linear-gradient(to right,rgba(6,182,212,0.18),rgba(168,85,247,0.18))';"
+                          onmouseleave="this.style.background='linear-gradient(to right,rgba(6,182,212,0.1),rgba(168,85,247,0.1))';">
+                          <div style="display:flex;align-items:center;gap:6px;">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(34,211,238,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);font-family:system-ui,sans-serif;">Evidencia Documental</span>
+                            <span style="background:rgba(6,182,212,0.2);border:1px solid rgba(6,182,212,0.4);color:#22d3ee;font-size:10px;font-weight:700;padding:0 5px;border-radius:999px;line-height:1.6;">${cCitations.length}</span>
+                          </div>
+                          <svg class="mt-cit-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" style="transform:rotate(180deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                        <div style="display:block;padding-top:6px;">
+                          <div style="display:grid;gap:6px;">
+                            ${cCitations.map((c, ci) => this.renderCitationCard(c, ci)).join('')}
+                          </div>
+                        </div>
+                      </div>
+                    ` : ''}
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">
+                      <div style="position:relative;">
+                        ${cLike === '1' ? `<div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(16,185,129,0.25),rgba(0,217,255,0.25));border-radius:8px;filter:blur(6px);pointer-events:none;"></div>` : ''}
+                        <button ${cBusy ? 'disabled' : ''}
+                          style="${cBase}${cLike === '1' ? cLikeOn : cLikeOff}${cBusy ? 'opacity:0.5;pointer-events:none;' : ''}position:relative;transition:all 0.15s,transform 0.1s;"
+                          onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(16,185,129,0.5)';this.style.color='rgb(52,211,153)';this.style.background='rgba(16,185,129,0.1)';this.style.transform='scale(1.05)';}"
+                          onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.55)';this.style.background='rgba(255,255,255,0.05)';} this.style.transform='scale(1)';"
+                          onmousedown="this.style.transform='scale(0.93)';" onmouseup="this.style.transform='scale(1)';"
+                          data-active="${cLike === '1' ? '1' : ''}"
+                          data-hist-like-value="1" data-hist-item-id="${escapeHtml(id)}" aria-label="Útil">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                          Útil
+                        </button>
+                        ${cLike === '1' ? `<div style="position:absolute;top:-5px;right:-5px;color:rgb(52,211,153);animation:mt-sparkles-pop 0.35s cubic-bezier(0.34,1.56,0.64,1) both;">${cSparklesSvg}</div>` : ''}
+                      </div>
+                      <div style="position:relative;">
+                        ${cLike === '0' ? `<div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(244,63,94,0.25),rgba(236,72,153,0.25));border-radius:8px;filter:blur(6px);pointer-events:none;"></div>` : ''}
+                        <button ${cBusy ? 'disabled' : ''}
+                          style="${cBase}${cLike === '0' ? cDislikeOn : cDislikeOff}${cBusy ? 'opacity:0.5;pointer-events:none;' : ''}position:relative;transition:all 0.15s,transform 0.1s;"
+                          onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(244,63,94,0.5)';this.style.color='rgb(251,113,133)';this.style.background='rgba(244,63,94,0.1)';this.style.transform='scale(1.05)';}"
+                          onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.55)';this.style.background='rgba(255,255,255,0.05)';} this.style.transform='scale(1)';"
+                          onmousedown="this.style.transform='scale(0.93)';" onmouseup="this.style.transform='scale(1)';"
+                          data-active="${cLike === '0' ? '1' : ''}"
+                          data-hist-like-value="0" data-hist-item-id="${escapeHtml(id)}" aria-label="No útil">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
+                          No útil
+                        </button>
+                      </div>
+                      ${cLike != null ? `<span style="font-size:11px;color:rgba(255,255,255,0.4);font-family:'Inter',sans-serif;animation:mt-fade-in 0.3s ease;">Gracias por tu feedback</span>` : ''}
+                    </div>
+                  </div>`;
+                })() : ''}
               </div>`;
           }).join('');
 
@@ -2936,14 +3063,23 @@
         <div class="mt-body" style="overflow-y:auto !important;display:block !important;padding:0 !important;">
           <div style="position:sticky;top:0;z-index:5;background:${bgTop};padding:10px 12px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">
             <!-- Buscador -->
-            <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:7px 11px;margin-bottom:8px;"
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.07);border:1px solid ${isRefreshing ? 'rgba(0,217,255,0.4)' : 'rgba(255,255,255,0.12)'};border-radius:10px;padding:7px 11px;margin-bottom:8px;transition:border-color 0.2s;"
               onfocusin="this.style.borderColor='rgba(0,217,255,0.4)';"
               onfocusout="this.style.borderColor='rgba(255,255,255,0.12)';">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" style="flex-shrink:0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input data-action="history-search" type="text" placeholder="Buscar conversación..."
+              <button type="button" data-action="history-search-submit"
+                style="flex-shrink:0;background:none;border:none;padding:0;${isRefreshing ? 'cursor:default;' : 'cursor:pointer;'}line-height:0;color:${isRefreshing ? 'rgba(0,217,255,0.7)' : 'rgba(255,255,255,0.4)'};transition:color 0.15s;"
+                onmouseenter="${isRefreshing ? '' : "this.style.color='rgba(0,217,255,0.8)';"}"
+                onmouseleave="${isRefreshing ? '' : "this.style.color='rgba(255,255,255,0.4)';"}"
+                aria-label="Buscar">
+                ${isRefreshing
+                  ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:mt-spin 0.8s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`
+                  : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`
+                }
+              </button>
+              <input data-action="history-search" type="search" placeholder="Buscar conversación..."
                 value="${escapeHtml(historySearch)}"
                 style="flex:1;background:transparent;border:none;outline:none;color:rgba(255,255,255,0.9);font-size:13px;font-family:system-ui,sans-serif;"
-                autocomplete="off" />
+                autocomplete="off" inputmode="search" enterkeyhint="search" />
               ${historySearch ? `<button type="button" data-action="history-search-clear"
                 style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;padding:0;line-height:0;flex-shrink:0;"
                 onmouseenter="this.style.color='rgba(255,255,255,0.8)';"
@@ -2961,14 +3097,15 @@
               </div>
             </div>
           </div>
-          <div style="padding:8px 10px;">${itemsHtml}</div>
+          <div style="padding:8px 10px;transition:opacity 0.2s;opacity:${isRefreshing ? '0.45' : '1'};pointer-events:${isRefreshing ? 'none' : 'auto'};">${itemsHtml}</div>
         </div>`;
     }
 
     renderHistoryFull() {
-      const { historyLoading, historyError, historySearch = '', historyFilter = 'all', expandedHistoryId } = this.state;
+      const { historyLoading, historyLoaded, historyError, historySearch = '', historyFilter = 'all', expandedHistoryId } = this.state;
+      const isRefreshing = historyLoading && historyLoaded;
 
-      if (historyLoading) {
+      if (historyLoading && !historyLoaded) {
         return this.renderHistoryLoadingView();
       }
 
@@ -3058,7 +3195,7 @@
                           <span style="font-size:12px;font-family:system-ui,sans-serif;">${escapeHtml(dateStr)}</span>
                         </div>
                         ${likeHtml}
-                        ${confidenceHtml}
+                        ${!isExp ? confidenceHtml : ''}
                       </div>
                       ${!isExp && item.answer ? `<p style="font-size:13px;color:rgba(255,255,255,0.55);margin:0;font-family:system-ui,sans-serif;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(item.answer)}</p>` : ''}
                     </div>
@@ -3067,26 +3204,79 @@
                     </div>
                   </div>
                 </button>
-                ${isExp ? `
+                ${isExp ? (() => {
+                  const hLike = normalizeLikeValue(item.like);
+                  const hBusy = item.likeLoading;
+                  const hSparklesSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>`;
+                  const hBase    = 'display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:8px;font-size:14px;font-family:\'Inter\',sans-serif;font-weight:500;cursor:pointer;transition:border-color 0.15s,color 0.15s,background 0.15s;';
+                  const hLikeOn  = 'background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.5);color:rgb(52,211,153);box-shadow:0 0 12px rgba(16,185,129,0.2);';
+                  const hLikeOff = 'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);';
+                  const hDislOn  = 'background:rgba(244,63,94,0.2);border:1px solid rgba(244,63,94,0.5);color:rgb(251,113,133);box-shadow:0 0 12px rgba(244,63,94,0.2);';
+                  const hDislOff = 'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);';
+                  const hConfHtml = this.renderConfidenceBadge(item.confidence);
+                  return `
                   <div style="border-top:1px solid rgba(255,255,255,0.08);padding:20px 24px;">
-                    <div style="margin-bottom:${mappedCitations.length > 0 ? '24px' : '0'};">
+                    <div style="margin-bottom:16px;">
                       <h4 style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;font-family:system-ui,sans-serif;margin:0 0 12px;">Respuesta Completa</h4>
                       <p style="font-size:14px;color:rgba(255,255,255,0.8);line-height:1.7;margin:0;font-family:system-ui,sans-serif;white-space:pre-wrap;">${escapeHtml(item.answer || '')}</p>
                     </div>
                     ${mappedCitations.length > 0 ? `
-                      <div>
-                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                          <div style="height:1px;flex:1;background:linear-gradient(to right,transparent,rgba(168,85,247,0.3),transparent);"></div>
-                          <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;font-family:system-ui,sans-serif;">Fuentes Consultadas (${mappedCitations.length})</span>
-                          <div style="height:1px;flex:1;background:linear-gradient(to right,transparent,rgba(168,85,247,0.3),transparent);"></div>
-                        </div>
-                        <div style="display:grid;gap:10px;">
-                          ${mappedCitations.map((c, ci) => this.renderCitationCard(c, ci)).join('')}
+                      <div style="margin-bottom:16px;">
+                        <button type="button"
+                          onclick="(function(btn){var body=btn.nextElementSibling;var chev=btn.querySelector('.mt-cit-chev');if(!body||!chev)return;var open=body.style.display!=='none';body.style.display=open?'none':'block';chev.style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)"
+                          style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(to right,rgba(6,182,212,0.12),rgba(168,85,247,0.12));border:1px solid rgba(6,182,212,0.22);border-radius:10px;cursor:pointer;transition:background 0.2s,border-color 0.2s;"
+                          onmouseenter="this.style.background='linear-gradient(to right,rgba(6,182,212,0.2),rgba(168,85,247,0.2))';this.style.borderColor='rgba(6,182,212,0.4)';"
+                          onmouseleave="this.style.background='linear-gradient(to right,rgba(6,182,212,0.12),rgba(168,85,247,0.12))';this.style.borderColor='rgba(6,182,212,0.22)';">
+                          <div style="display:flex;align-items:center;gap:8px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(34,211,238,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            <span style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.85);font-family:system-ui,sans-serif;">Evidencia Documental</span>
+                            <span style="background:rgba(6,182,212,0.2);border:1px solid rgba(6,182,212,0.4);color:#22d3ee;font-size:11px;font-weight:700;font-family:system-ui,sans-serif;padding:1px 7px;border-radius:999px;line-height:1.6;">${mappedCitations.length}</span>
+                          </div>
+                          <svg class="mt-cit-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" style="transform:rotate(180deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                        <div style="display:block;padding-top:10px;">
+                          <div style="display:grid;gap:10px;">
+                            ${mappedCitations.map((c, ci) => this.renderCitationCard(c, ci)).join('')}
+                          </div>
                         </div>
                       </div>
                     ` : ''}
-                  </div>
-                ` : ''}
+                    <div style="padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                      <span style="font-size:14px;color:rgba(255,255,255,0.5);font-family:system-ui,sans-serif;">¿Te fue útil?</span>
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="position:relative;">
+                          ${hLike === '1' ? `<div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(16,185,129,0.3),rgba(0,217,255,0.3));border-radius:10px;filter:blur(8px);pointer-events:none;"></div>` : ''}
+                          <button ${hBusy ? 'disabled' : ''}
+                            style="${hBase}${hLike === '1' ? hLikeOn : hLikeOff}position:relative;transition:all 0.15s,transform 0.1s;${hBusy ? 'opacity:0.5;pointer-events:none;' : ''}"
+                            onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(16,185,129,0.5)';this.style.color='rgb(52,211,153)';this.style.background='rgba(16,185,129,0.1)';this.style.transform='scale(1.05)';}"
+                            onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.6)';this.style.background='rgba(255,255,255,0.05)';} this.style.transform='scale(1)';"
+                            onmousedown="this.style.transform='scale(0.95)';" onmouseup="this.style.transform='scale(1)';"
+                            data-active="${hLike === '1' ? '1' : ''}"
+                            data-hist-like-value="1" data-hist-item-id="${itemId}" aria-label="Útil">
+                            <span style="display:flex;width:16px;height:16px;flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></span>
+                            <span>Útil</span>
+                          </button>
+                          ${hLike === '1' ? `<div style="position:absolute;top:-7px;right:-7px;color:rgb(52,211,153);animation:mt-sparkles-pop 0.35s cubic-bezier(0.34,1.56,0.64,1) both;">${hSparklesSvg}</div>` : ''}
+                        </div>
+                        <div style="position:relative;">
+                          ${hLike === '0' ? `<div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(244,63,94,0.3),rgba(236,72,153,0.3));border-radius:10px;filter:blur(8px);pointer-events:none;"></div>` : ''}
+                          <button ${hBusy ? 'disabled' : ''}
+                            style="${hBase}${hLike === '0' ? hDislOn : hDislOff}position:relative;transition:all 0.15s,transform 0.1s;${hBusy ? 'opacity:0.5;pointer-events:none;' : ''}"
+                            onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(244,63,94,0.5)';this.style.color='rgb(251,113,133)';this.style.background='rgba(244,63,94,0.1)';this.style.transform='scale(1.05)';}"
+                            onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.6)';this.style.background='rgba(255,255,255,0.05)';} this.style.transform='scale(1)';"
+                            onmousedown="this.style.transform='scale(0.95)';" onmouseup="this.style.transform='scale(1)';"
+                            data-active="${hLike === '0' ? '1' : ''}"
+                            data-hist-like-value="0" data-hist-item-id="${itemId}" aria-label="No útil">
+                            <span style="display:flex;width:16px;height:16px;flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg></span>
+                            <span>No útil</span>
+                          </button>
+                        </div>
+                      </div>
+                      ${hConfHtml}
+                      ${hLike != null ? `<span style="font-size:12px;color:rgba(255,255,255,0.4);font-family:'Inter',sans-serif;animation:mt-fade-in 0.3s ease;">Gracias por tu feedback</span>` : ''}
+                    </div>
+                  </div>`;
+                })() : ''}
               </div>
             </div>`;
         }).join('');
@@ -3105,12 +3295,22 @@
             <!-- Search bar -->
             <div style="position:relative;margin-bottom:14px;">
               <div style="position:absolute;inset:-1px;background:linear-gradient(to right,rgba(6,182,212,0.2),rgba(168,85,247,0.2));border-radius:13px;filter:blur(4px);opacity:0.5;pointer-events:none;"></div>
-              <div style="position:relative;background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:11px 16px;display:flex;align-items:center;gap:10px;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" data-action="history-search"
+              <div style="position:relative;background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);border:1px solid ${isRefreshing ? 'rgba(0,217,255,0.4)' : 'rgba(255,255,255,0.1)'};border-radius:12px;padding:11px 16px;display:flex;align-items:center;gap:10px;transition:border-color 0.2s;">
+                <button type="button" data-action="history-search-submit"
+                  style="flex-shrink:0;background:none;border:none;padding:0;${isRefreshing ? 'cursor:default;' : 'cursor:pointer;'}line-height:0;color:${isRefreshing ? 'rgba(0,217,255,0.7)' : 'rgba(255,255,255,0.35)'};transition:color 0.15s;"
+                  onmouseenter="${isRefreshing ? '' : "this.style.color='rgba(0,217,255,0.8)';"}"
+                  onmouseleave="${isRefreshing ? '' : "this.style.color='rgba(255,255,255,0.35)';"}"
+                  aria-label="Buscar">
+                  ${isRefreshing
+                    ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:mt-spin 0.8s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`
+                    : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`
+                  }
+                </button>
+                <input type="search" data-action="history-search"
                   placeholder="Buscar en el historial..."
                   value="${escapeHtml(historySearch || '')}"
                   style="flex:1;background:transparent;border:none;outline:none;color:rgba(255,255,255,0.9);font-size:14px;font-family:system-ui,sans-serif;"
+                  inputmode="search" enterkeyhint="search"
                 />
                 ${historySearch ? `<button type="button" data-action="history-search-clear" style="color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;font-size:12px;font-family:system-ui,sans-serif;padding:2px 6px;"
                   onmouseenter="this.style.color='rgba(255,255,255,0.7)';"
@@ -3136,7 +3336,7 @@
 
           <!-- Items list -->
           <div style="flex:1;overflow-y:auto;padding:20px 32px;" class="mt-history-scroll">
-            <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;flex-direction:column;gap:12px;transition:opacity 0.2s;opacity:${isRefreshing ? '0.45' : '1'};pointer-events:${isRefreshing ? 'none' : 'auto'};">
               ${itemsHtml}
             </div>
           </div>
@@ -3224,16 +3424,16 @@
         </div>`;
     }
 
-    renderCitationCard(c, index) {
+    renderCitationCard(c, index, animate = false) {
       const filename = escapeHtml(citationSourceLabel(c.source));
       const page = c.page_number != null ? c.page_number : null;
-      const location = c.location ? escapeHtml(c.location) : null;
+      const location = c.location ? escapeHtml(c.location).split(',')[0].trim() : null;
       const hasSubtitle = location || c.snippet;
       const cardId = `mt-cc-${Date.now()}-${index}`;
 
       return `
         <div id="${cardId}"
-          style="background:linear-gradient(135deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.12) 100%);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:16px;animation:mt-fade-in 0.35s ease ${index * 0.1}s both;transition:border-color 0.2s ease,box-shadow 0.2s ease;overflow:hidden;min-width:0;"
+          style="background:linear-gradient(135deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.12) 100%);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:16px;${animate ? `animation:mt-fade-in 0.35s ease ${index * 0.1}s both;` : ''}transition:border-color 0.2s ease,box-shadow 0.2s ease;overflow:hidden;min-width:0;"
           onmouseenter="this.style.borderColor='rgba(0,217,255,0.4)';this.style.boxShadow='0 0 0 1px rgba(0,217,255,0.1),0 0 20px rgba(0,217,255,0.1)';var m=this.querySelector('.mt-cc-more');if(m)m.style.opacity='1';"
           onmouseleave="this.style.borderColor='rgba(255,255,255,0.12)';this.style.boxShadow='none';var m=this.querySelector('.mt-cc-more');if(m&&this.dataset.ccExpanded!=='1')m.style.opacity='0';"
         >
@@ -3308,7 +3508,25 @@
       `;
     }
 
-    renderConfidenceBadge(confidence) {
+    renderConfidenceBadgeCompact(confidence, animate = false) {
+      if (!confidence) return '';
+      const cfg = {
+        alta:  { label: 'Alta conf.',  color: 'linear-gradient(to right,#10b981,#06b6d4)', glow: 'rgba(16,185,129,0.5)',  width: '100%' },
+        media: { label: 'Conf. media', color: 'linear-gradient(to right,#f59e0b,#f97316)', glow: 'rgba(245,158,11,0.5)',  width: '50%'  },
+        baja:  { label: 'Conf. baja',  color: 'linear-gradient(to right,#f43f5e,#ec4899)', glow: 'rgba(244,63,94,0.5)',   width: '25%'  },
+      };
+      const c = cfg[confidence];
+      if (!c) return '';
+      return `
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div style="position:relative;width:48px;height:4px;background:rgba(255,255,255,0.1);border-radius:9999px;overflow:hidden;flex-shrink:0;">
+            <div style="position:absolute;top:0;bottom:0;left:0;width:${c.width};background:${c.color};border-radius:9999px;box-shadow:0 0 6px ${c.glow};transform-origin:left center;${animate ? 'animation:mt-conf-fill 0.8s ease-out both;' : ''}"></div>
+          </div>
+          <span style="font-size:10px;color:rgba(255,255,255,0.6);font-family:system-ui,sans-serif;font-weight:500;white-space:nowrap;">${c.label}</span>
+        </div>`;
+    }
+
+    renderConfidenceBadge(confidence, animate = false) {
       if (!confidence) return '';
       const cfg = {
         alta:  { label: 'Alta Confianza',  color: 'linear-gradient(to right,#10b981,#06b6d4)', glow: 'rgba(16,185,129,0.5)',  width: '100%' },
@@ -3320,7 +3538,7 @@
       return `
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="position:relative;width:96px;height:6px;background:rgba(255,255,255,0.1);border-radius:9999px;overflow:hidden;">
-            <div style="position:absolute;top:0;bottom:0;left:0;width:${c.width};background:${c.color};border-radius:9999px;box-shadow:0 0 10px ${c.glow};transform-origin:left center;animation:mt-conf-fill 0.8s ease-out both;"></div>
+            <div style="position:absolute;top:0;bottom:0;left:0;width:${c.width};background:${c.color};border-radius:9999px;box-shadow:0 0 10px ${c.glow};transform-origin:left center;${animate ? 'animation:mt-conf-fill 0.8s ease-out both;' : ''}"></div>
           </div>
           <span style="font-size:11px;color:rgba(255,255,255,0.7);font-family:system-ui,sans-serif;font-weight:500;">${c.label}</span>
         </div>`;
@@ -3333,7 +3551,7 @@
       const like = m.like;
       const busy = m.likeLoading ? 'true' : '';
 
-      const confidenceHtml = this.renderConfidenceBadge(m.confidence);
+      const confidenceHtml = this.renderConfidenceBadge(m.confidence, latest);
 
       const likeBase   = 'display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:8px;font-size:14px;font-family:\'Inter\',sans-serif;font-weight:500;cursor:pointer;transition:border-color 0.15s,color 0.15s,background 0.15s;';
       const likeOn     = 'background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.5);color:rgb(52,211,153);box-shadow:0 0 12px rgba(16,185,129,0.2);';
@@ -3342,43 +3560,59 @@
       const dislikeOff = 'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);';
 
       const sparklesSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>`;
+
       const feedbackHtml = showFeedback ? `
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.07);">
           <span style="font-size:14px;color:rgba(255,255,255,0.5);font-family:system-ui,sans-serif;">¿Te fue útil?</span>
           <div style="display:flex;align-items:center;gap:8px;">
-            <!-- Útil button -->
             <div style="position:relative;">
               ${like === '1' ? `<div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(16,185,129,0.3),rgba(0,217,255,0.3));border-radius:10px;filter:blur(8px);pointer-events:none;"></div>` : ''}
-              <button
-                style="${likeBase}${like === '1' ? likeOn : likeOff}position:relative;transition:${likeBase.includes('transition') ? '' : 'all 0.15s, transform 0.1s;'}"
+              <button style="${likeBase}${like === '1' ? likeOn : likeOff}position:relative;transition:all 0.15s,transform 0.1s;"
                 ${busy ? 'disabled' : ''}
                 onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(16,185,129,0.5)';this.style.color='rgb(52,211,153)';this.style.background='rgba(16,185,129,0.1)';this.style.transform='scale(1.05)';}"
                 onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.6)';this.style.background='rgba(255,255,255,0.05)';} this.style.transform='scale(1)';"
-                onmousedown="this.style.transform='scale(0.95)';"
-                onmouseup="this.style.transform='scale(1)';"
-                data-active="${like === '1' ? '1' : ''}"
-                data-like-value="1" data-msg-index="${msgIndex}" aria-label="Útil">
+                onmousedown="this.style.transform='scale(0.95)';" onmouseup="this.style.transform='scale(1)';"
+                data-active="${like === '1' ? '1' : ''}" data-like-value="1" data-msg-index="${msgIndex}" aria-label="Útil">
                 <span style="display:flex;width:16px;height:16px;flex-shrink:0;">${svgThumbUp()}</span> <span>Útil</span>
               </button>
               ${like === '1' ? `<div style="position:absolute;top:-7px;right:-7px;color:rgb(52,211,153);animation:mt-sparkles-pop 0.35s cubic-bezier(0.34,1.56,0.64,1) both;">${sparklesSvg}</div>` : ''}
             </div>
-            <!-- No útil button -->
             <div style="position:relative;">
               ${like === '0' ? `<div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(244,63,94,0.3),rgba(236,72,153,0.3));border-radius:10px;filter:blur(8px);pointer-events:none;"></div>` : ''}
-              <button
-                style="${likeBase}${like === '0' ? dislikeOn : dislikeOff}position:relative;transition:all 0.15s, transform 0.1s;"
+              <button style="${likeBase}${like === '0' ? dislikeOn : dislikeOff}position:relative;transition:all 0.15s,transform 0.1s;"
                 ${busy ? 'disabled' : ''}
                 onmouseenter="if(this.dataset.active!=='1'){this.style.borderColor='rgba(244,63,94,0.5)';this.style.color='rgb(251,113,133)';this.style.background='rgba(244,63,94,0.1)';this.style.transform='scale(1.05)';}"
                 onmouseleave="if(this.dataset.active!=='1'){this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.6)';this.style.background='rgba(255,255,255,0.05)';} this.style.transform='scale(1)';"
-                onmousedown="this.style.transform='scale(0.95)';"
-                onmouseup="this.style.transform='scale(1)';"
-                data-active="${like === '0' ? '1' : ''}"
-                data-like-value="0" data-msg-index="${msgIndex}" aria-label="No útil">
+                onmousedown="this.style.transform='scale(0.95)';" onmouseup="this.style.transform='scale(1)';"
+                data-active="${like === '0' ? '1' : ''}" data-like-value="0" data-msg-index="${msgIndex}" aria-label="No útil">
                 <span style="display:flex;width:16px;height:16px;flex-shrink:0;">${svgThumbDown()}</span> <span>No útil</span>
               </button>
             </div>
           </div>
-          ${like != null ? '<span style="font-size:12px;color:rgba(255,255,255,0.4);font-family:\'Inter\',sans-serif;animation:mt-fade-in 0.3s ease;">Gracias por tu feedback</span>' : ''}
+          ${confidenceHtml}
+          ${like != null ? `<span style="font-size:12px;color:rgba(255,255,255,0.4);font-family:'Inter',sans-serif;animation:mt-fade-in 0.3s ease;">Gracias por tu feedback</span>` : ''}
+        </div>
+      ` : (confidenceHtml ? `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.07);">${confidenceHtml}</div>` : '');
+
+      const citationsHtml = citations.length > 0 ? `
+        <div class="mt-citations-section" style="margin-top:16px;${latest ? 'animation:mt-fade-in 0.35s ease 0.2s both;' : ''}">
+          <button type="button"
+            onclick="(function(btn){var body=btn.nextElementSibling;var chev=btn.querySelector('.mt-cit-chev');if(!body||!chev)return;var open=body.style.display!=='none';body.style.display=open?'none':'block';chev.style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)"
+            style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(to right,rgba(6,182,212,0.12),rgba(168,85,247,0.12));border:1px solid rgba(6,182,212,0.22);border-radius:10px;cursor:pointer;transition:background 0.2s,border-color 0.2s;margin-bottom:0;"
+            onmouseenter="this.style.background='linear-gradient(to right,rgba(6,182,212,0.2),rgba(168,85,247,0.2))';this.style.borderColor='rgba(6,182,212,0.4)';"
+            onmouseleave="this.style.background='linear-gradient(to right,rgba(6,182,212,0.12),rgba(168,85,247,0.12))';this.style.borderColor='rgba(6,182,212,0.22)';">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(34,211,238,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <span style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.85);font-family:system-ui,sans-serif;">Evidencia Documental</span>
+              <span style="background:rgba(6,182,212,0.2);border:1px solid rgba(6,182,212,0.4);color:#22d3ee;font-size:11px;font-weight:700;font-family:system-ui,sans-serif;padding:1px 7px;border-radius:599px;line-height:1.6;">${citations.length}</span>
+            </div>
+            <svg class="mt-cit-chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" style="transform:rotate(180deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div style="display:block;padding-top:12px;">
+            <div style="display:grid;gap:12px;min-width:0;overflow:hidden;">
+              ${citations.map((c, i) => this.renderCitationCard(c, i, latest)).join('')}
+            </div>
+          </div>
         </div>
       ` : '';
 
@@ -3386,34 +3620,26 @@
         <div class="mt-dark-msg-row" style="display:flex;gap:16px;margin-bottom:32px;${latest ? 'animation:mt-fade-in 0.35s ease;' : ''}">
           ${this.renderAvatarHTML()}
           <div style="flex:1;max-width:896px;min-width:0;">
-            <div style="position:relative;margin-bottom:16px;"
+            <!-- Burbuja de respuesta -->
+            <div style="position:relative;margin-bottom:0;"
               onmouseenter="this.children[0].style.opacity='1';"
               onmouseleave="this.children[0].style.opacity='0';"
             >
               <div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(168,85,247,0.25),rgba(0,217,255,0.25));border-radius:18px;filter:blur(10px);opacity:0;transition:opacity 0.2s ease;pointer-events:none;z-index:0;"></div>
               <div class="mt-bot-bubble-card" style="position:relative;z-index:1;background:linear-gradient(135deg,rgba(255,255,255,0.08) 0%,rgba(255,255,255,0.13) 100%);border:1px solid rgba(255,255,255,0.18);border-radius:16px;padding:20px 24px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.1),0 4px 24px rgba(0,0,0,0.2);">
                 <p class="mt-bot-answer-text" style="color:rgba(255,255,255,0.9);line-height:1.6;margin:0;font-family:system-ui,sans-serif;font-size:15px;white-space:pre-wrap;">${escapeHtml(m.text)}</p>
+                <!-- Votación justo debajo de la respuesta -->
+                ${feedbackHtml}
               </div>
             </div>
-            ${citations.length > 0 ? `
-              <div class="mt-citations-section" style="margin-bottom:16px;animation:mt-fade-in 0.35s ease 0.2s both;">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                  <div style="height:1px;flex:1;background:linear-gradient(to right,transparent,rgba(168,85,247,0.3),transparent);"></div>
-                  <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.08em;font-family:system-ui,sans-serif;">Evidencia Documental</span>
-                  <div style="height:1px;flex:1;background:linear-gradient(to right,transparent,rgba(168,85,247,0.3),transparent);"></div>
-                </div>
-                <div style="display:grid;gap:12px;min-width:0;overflow:hidden;">
-                  ${citations.map((c, i) => this.renderCitationCard(c, i)).join('')}
-                </div>
+            <!-- Evidencia documental (acordeón) -->
+            ${citationsHtml}
+            <!-- Footer: solo hora -->
+            ${time ? `
+              <div class="mt-msg-footer" style="margin-top:8px;${latest ? 'animation:mt-fade-in 0.35s ease 0.4s both;' : ''}">
+                <span style="font-size:12px;color:rgba(255,255,255,0.4);font-family:system-ui,sans-serif;">${escapeHtml(time)}</span>
               </div>
             ` : ''}
-            <div class="mt-msg-footer" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;animation:mt-fade-in 0.35s ease 0.4s both;">
-              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                ${time ? `<span style="font-size:12px;color:rgba(255,255,255,0.4);font-family:system-ui,sans-serif;">${escapeHtml(time)}</span>` : ''}
-                ${confidenceHtml}
-              </div>
-              ${feedbackHtml}
-            </div>
           </div>
         </div>
       `;
@@ -3499,8 +3725,8 @@
               No útil
             </button>
           </div>
-          ${m.confidence ? this.renderConfidenceBadge(m.confidence) : ''}
-        </div>` : (m.confidence ? `<div style="margin-top:8px;">${this.renderConfidenceBadge(m.confidence)}</div>` : '');
+          ${m.confidence ? this.renderConfidenceBadgeCompact(m.confidence, latest) : ''}
+        </div>` : (m.confidence ? `<div style="margin-top:8px;">${this.renderConfidenceBadgeCompact(m.confidence, latest)}</div>` : '');
 
       return `
         <div style="display:flex;gap:10px;margin-bottom:18px;${latest ? 'animation:mt-fade-in 0.3s ease;' : ''}">
@@ -3524,19 +3750,28 @@
             >
               <div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(168,85,247,0.25),rgba(0,217,255,0.25));border-radius:14px;filter:blur(8px);opacity:0;transition:opacity 0.2s ease;pointer-events:none;"></div>
               <div style="position:relative;background:linear-gradient(135deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.11) 100%);border:1px solid rgba(255,255,255,0.14);border-radius:12px;padding:12px 14px;">
-                <p style="color:rgba(255,255,255,0.9);font-size:13px;line-height:1.55;margin:0;font-family:system-ui,sans-serif;white-space:pre-wrap;">${escapeHtml(m.text)}</p>
+                <p style="color:rgba(255,255,255,0.9);font-size:13px;line-height:1.55;margin:0;font-family:system-ui,sans-serif;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word;">${escapeHtml(m.text)}</p>
               </div>
             </div>
-            <!-- Citations -->
+            <!-- Citations acordeón -->
             ${citations.length > 0 ? `
               <div style="margin-bottom:8px;">
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-                  <div style="height:1px;flex:1;background:linear-gradient(to right,transparent,rgba(168,85,247,0.25),transparent);"></div>
-                  <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.1em;font-family:system-ui,sans-serif;">Evidencia</span>
-                  <div style="height:1px;flex:1;background:linear-gradient(to right,transparent,rgba(168,85,247,0.25),transparent);"></div>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:4px;">
-                  ${citations.map((c, i) => this.renderCompactCitationPill(c, i)).join('')}
+                <button type="button"
+                  onclick="(function(btn){var body=btn.nextElementSibling;var chev=btn.querySelector('.mt-cit-chev');if(!body||!chev)return;var open=body.style.display!=='none';body.style.display=open?'none':'block';chev.style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)"
+                  style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:linear-gradient(to right,rgba(6,182,212,0.1),rgba(168,85,247,0.1));border:1px solid rgba(6,182,212,0.2);border-radius:8px;cursor:pointer;transition:background 0.2s;"
+                  onmouseenter="this.style.background='linear-gradient(to right,rgba(6,182,212,0.18),rgba(168,85,247,0.18))';"
+                  onmouseleave="this.style.background='linear-gradient(to right,rgba(6,182,212,0.1),rgba(168,85,247,0.1))';">
+                  <div style="display:flex;align-items:center;gap:5px;">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(34,211,238,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);font-family:system-ui,sans-serif;">Evidencia Documental</span>
+                    <span style="background:rgba(6,182,212,0.2);border:1px solid rgba(6,182,212,0.4);color:#22d3ee;font-size:10px;font-weight:700;padding:0 5px;border-radius:999px;line-height:1.6;">${citations.length}</span>
+                  </div>
+                  <svg class="mt-cit-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" style="transform:rotate(180deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div style="display:block;padding-top:6px;">
+                  <div style="display:flex;flex-direction:column;gap:4px;">
+                    ${citations.map((c, i) => this.renderCompactCitationPill(c, i)).join('')}
+                  </div>
                 </div>
               </div>
             ` : ''}
@@ -3693,8 +3928,8 @@
     }
 
     renderExpandedHeader(isHistory = false) {
-      const courseId = this.courseId || '';
-      const studentId = this.studentId || '';
+      const courseName = this.courseName || '';
+      const studentName = this.studentName || '';
       return `
         <div class="mt-header-anim-line"></div>
         <div class="mt-logo-section">
@@ -3716,15 +3951,10 @@
               <div class="mt-logo-subtitle">Asistente Académico AI</div>
             </div>
           </div>
-          ${courseId ? `<div class="mt-header-divider"></div><div class="mt-course-badge">${escapeHtml(courseId)}</div>` : ''}
+          ${courseName ? `<div class="mt-header-divider"></div><div class="mt-course-badge">${escapeHtml(courseName)}</div>` : ''}
         </div>
         <div class="mt-header-right">
-          ${studentId ? `
-            <div class="mt-student-badge">
-              ${svgUserIcon()}
-              <span>${escapeHtml(studentId)}</span>
-            </div>
-          ` : ''}
+          ${studentName ? `<div class="mt-student-badge">${svgUserIcon()} <span>${escapeHtml(studentName)}</span></div>` : ''}
           ${isHistory
             ? `<button type="button" class="mt-btn-history-dark" data-action="history-back">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -3743,15 +3973,28 @@
     }
 
     renderDarkInput() {
+      const busy = this.state.loading;
       return `
         <div class="mt-input-dark-area">
           <div class="mt-input-dark-inner">
             <div class="mt-input-wrap">
               <div class="mt-input-glow"></div>
-              <form id="mt-form" class="mt-input-glass">
+              <form id="mt-form" class="mt-input-glass${busy ? ' mt-input-glass--busy' : ''}">
                 <div class="mt-input-scanner"></div>
-                <input id="mt-input" placeholder="Haz una pregunta sobre los documentos..." autocomplete="off" />
-                <button type="submit" class="mt-btn-send-dark" aria-label="Enviar">${svgSend()}</button>
+                <input id="mt-input"
+                  placeholder="${busy ? 'Esperando respuesta...' : 'Haz una pregunta sobre los documentos...'}"
+                  autocomplete="off"
+                  ${busy ? 'disabled' : ''}
+                  style="${busy ? 'opacity:0.45;cursor:not-allowed;' : ''}"
+                />
+                <button type="submit" class="mt-btn-send-dark" aria-label="Enviar"
+                  ${busy ? 'disabled' : ''}
+                  style="${busy ? 'opacity:0.35;cursor:not-allowed;' : ''}">
+                  ${busy
+                    ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:mt-spin 0.8s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`
+                    : svgSend()
+                  }
+                </button>
               </form>
             </div>
           </div>
@@ -3892,31 +4135,61 @@
       this.bindLikeButtons();
       this.bindSuggestionBtns();
       this.bindHistorySearch();
+      this._initCitationMoreBtns();
+    }
+
+    /** Oculta los botones "Ver más" en tarjetas donde el snippet no está realmente truncado. */
+    _initCitationMoreBtns() {
+      requestAnimationFrame(() => {
+        this.shadowRoot?.querySelectorAll('.mt-cc-snippet-wrap').forEach(wrap => {
+          const p   = wrap.querySelector('.mt-cc-snippet');
+          const btn = wrap.parentElement?.querySelector('.mt-cc-more');
+          if (!p || !btn) return;
+          if (p.scrollHeight <= p.clientHeight + 2) {
+            btn.style.display = 'none';
+          }
+        });
+      });
     }
 
     bindHistorySearch() {
       const root = this.shadowRoot;
 
-      // Search input — debounce 450ms antes de llamar al servidor
+      const doSearch = () => {
+        clearTimeout(this._searchDebounce);
+        const input = this.shadowRoot.querySelector("[data-action='history-search']");
+        const selStart = input ? input.selectionStart : 0;
+        const selEnd   = input ? input.selectionEnd   : 0;
+        this.loadHistory().then(() => {
+          const newInput = this.shadowRoot.querySelector("[data-action='history-search']");
+          if (newInput) {
+            newInput.focus();
+            try { newInput.setSelectionRange(selStart, selEnd); } catch (_) {}
+          }
+        });
+      };
+
+      // Search input — solo actualiza el estado; busca en Enter o lupa
       const searchInput = root.querySelector("[data-action='history-search']");
       if (searchInput) {
         searchInput.addEventListener("input", (e) => {
           this.state.historySearch = e.target.value;
-          // Mantener el cursor en el input antes de re-fetch
-          const selStart = e.target.selectionStart;
-          const selEnd = e.target.selectionEnd;
-          clearTimeout(this._searchDebounce);
-          this._searchDebounce = setTimeout(() => {
-            this.loadHistory().then(() => {
-              const newInput = this.shadowRoot.querySelector("[data-action='history-search']");
-              if (newInput) {
-                newInput.focus();
-                try { newInput.setSelectionRange(selStart, selEnd); } catch (_) {}
-              }
-            });
-          }, 450);
+        });
+
+        // Enter / tecla "Buscar" del teclado móvil
+        searchInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            doSearch();
+          }
         });
       }
+
+      // Click en el ícono de lupa
+      root.querySelector("[data-action='history-search-submit']")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        doSearch();
+      });
 
       // Clear search
       root.querySelector("[data-action='history-search-clear']")?.addEventListener("click", (e) => {
@@ -3940,13 +4213,20 @@
       root.querySelectorAll("[data-action='history-item-toggle']").forEach(btn => {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
-          const scrollEl = this.shadowRoot.querySelector('.mt-body');
-          const savedScroll = scrollEl ? scrollEl.scrollTop : 0;
           const id = btn.dataset.id;
           this.state.expandedHistoryId = this.state.expandedHistoryId === id ? null : id;
-          this.render();
-          const newScrollEl = this.shadowRoot.querySelector('.mt-body');
-          if (newScrollEl) newScrollEl.scrollTop = savedScroll;
+          this.renderKeepHistScroll();
+        });
+      });
+
+      // Like/dislike en ítems del historial
+      root.querySelectorAll("[data-hist-like-value]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const itemId    = btn.getAttribute("data-hist-item-id");
+          const likeValue = btn.getAttribute("data-hist-like-value");
+          if (!itemId || (likeValue !== "1" && likeValue !== "0")) return;
+          this.setLikeForHistoryItem(itemId, likeValue);
         });
       });
     }
@@ -4062,7 +4342,8 @@
 
       this.bindShell();
 
-      if (this.state.isOpen && view === "chat") {
+      if (this.state.isOpen && view === "chat" && this.state._scrollToBottom) {
+        this.state._scrollToBottom = false;
         const sc = this.shadowRoot.querySelector("#mt-messages");
         if (sc) sc.scrollTop = sc.scrollHeight;
       }
