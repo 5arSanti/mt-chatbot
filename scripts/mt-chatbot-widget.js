@@ -2572,17 +2572,21 @@
           || this.shadowRoot?.querySelector('.mt-body');
     }
 
-    /** Guarda el estado open/closed de todos los acordeones de citaciones. */
+    /** Guarda el estado open/closed de todos los acordeones de citaciones (por data-cit-id). */
     _saveCitAccordions() {
-      return Array.from(this.shadowRoot?.querySelectorAll('.mt-cit-body') || [])
-        .map(el => el.style.display !== 'none');
+      const map = {};
+      this.shadowRoot?.querySelectorAll('.mt-cit-body').forEach(el => {
+        const id = el.dataset.citId;
+        if (id) map[id] = el.style.display !== 'none';
+      });
+      return map;
     }
 
-    /** Restaura el estado open/closed de los acordeones tras un re-render. */
+    /** Restaura el estado open/closed de los acordeones tras un re-render (por data-cit-id). */
     _restoreCitAccordions(states) {
-      const els = this.shadowRoot?.querySelectorAll('.mt-cit-body') || [];
-      els.forEach((el, i) => {
-        const open = states[i] || false;
+      this.shadowRoot?.querySelectorAll('.mt-cit-body').forEach(el => {
+        const id   = el.dataset.citId;
+        const open = id ? (states[id] || false) : false;
         el.style.display = open ? 'block' : 'none';
         const btn  = el.previousElementSibling;
         const chev = btn?.querySelector('.mt-cit-chev');
@@ -3018,7 +3022,7 @@
                           </div>
                           <svg class="mt-cit-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" style="transform:rotate(0deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
                         </button>
-                        <div class="mt-cit-body" style="display:none;padding-top:6px;">
+                        <div class="mt-cit-body" data-cit-id="hist-${escapeHtml(id)}" style="display:none;padding-top:6px;">
                           <div style="display:grid;gap:6px;">
                             ${cCitations.map((c, ci) => this.renderCitationCard(c, ci)).join('')}
                           </div>
@@ -3290,7 +3294,7 @@
                           </div>
                           <svg class="mt-cit-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" style="transform:rotate(0deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
                         </button>
-                        <div class="mt-cit-body" style="display:none;padding-top:10px;">
+                        <div class="mt-cit-body" data-cit-id="hist-${itemId}" style="display:none;padding-top:10px;">
                           <div style="display:grid;gap:10px;">
                             ${mappedCitations.map((c, ci) => this.renderCitationCard(c, ci)).join('')}
                           </div>
@@ -3634,7 +3638,7 @@
             </div>
             <svg class="mt-cit-chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" style="transform:rotate(0deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
-          <div class="mt-cit-body" style="display:none;padding-top:12px;">
+          <div class="mt-cit-body" data-cit-id="msg-${msgIndex}" style="display:none;padding-top:12px;">
             <div style="display:grid;gap:12px;min-width:0;overflow:hidden;">
               ${citations.map((c, i) => this.renderCitationCard(c, i, latest)).join('')}
             </div>
@@ -3794,7 +3798,7 @@
                   </div>
                   <svg class="mt-cit-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" style="transform:rotate(0deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
-                <div class="mt-cit-body" style="display:none;padding-top:6px;">
+                <div class="mt-cit-body" data-cit-id="msg-${msgIndex}" style="display:none;padding-top:6px;">
                   <div style="display:flex;flex-direction:column;gap:4px;">
                     ${citations.map((c, i) => this.renderCompactCitationPill(c, i)).join('')}
                   </div>
