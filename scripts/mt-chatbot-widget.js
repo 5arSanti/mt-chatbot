@@ -2451,7 +2451,7 @@
     get apiUrl() {
       return (
         this.getAttribute("api-url") ||
-        "https://course-storage-api-qdrant-1018797915827.us-east1.run.app"
+        "https://enigma-44vnxklesa-ue.a.run.app"
       );
     }
 
