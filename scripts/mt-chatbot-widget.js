@@ -2473,6 +2473,10 @@
       return `${this.apiBaseUrl}/question`;
     }
 
+    get resetUrl(){
+      return `${this.apiBaseUrl}/session/reset`;
+    }
+
     /** "GET" | "POST" — si tu API usa GET con query params, pon history-method="GET". */
     get historyMethod() {
       return (this.getAttribute("history-method") || "POST").toUpperCase();
@@ -2650,7 +2654,20 @@
       this.render();
     }
 
-    newChat() {
+    async newChat() {
+      try {
+        await fetch(this.resetUrl, {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            student_id: this.studentId,
+            course_id: this.courseId,
+          }),
+        });
+      } catch {
+        // best-effort: si falla el reset en el servidor, continuamos igual
+      }
       this.state.messages = [];
       this.state.selectedDayKey = null;
       this.state.loading = false;
@@ -2718,6 +2735,9 @@
         this.render();
       }
     }
+    
+
+    
 
     async sendMessage() {
       const input = this.shadowRoot.querySelector("#mt-input");
