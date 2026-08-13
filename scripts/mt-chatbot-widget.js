@@ -2490,6 +2490,15 @@
       return this.getAttribute("course-id");
     }
 
+    get courseShortname() {
+      return this.getAttribute("course-shortname");
+    }
+
+    /** Identificador de curso a enviar a la API: usa course-id si existe, si no course-shortname. */
+    get courseIdentifier() {
+      return this.courseId || this.courseShortname;
+    }
+
     get studentName() {
       return this.getAttribute("student-name");
     }
