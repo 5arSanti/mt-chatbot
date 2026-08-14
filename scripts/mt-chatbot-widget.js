@@ -2494,9 +2494,9 @@
       return this.getAttribute("course-shortname");
     }
 
-    /** Identificador de curso a enviar a la API: usa course-id si existe, si no course-shortname. */
+    /** Identificador de curso a enviar a la API: usa course-shortname si existe, si no course-id. */
     get courseIdentifier() {
-      return this.courseId || this.courseShortname;
+      return this.courseShortname || this.courseId;
     }
 
     get studentName() {
@@ -2671,7 +2671,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             student_id: this.studentId,
-            course_id: this.courseId,
+            course_id: this.courseIdentifier,
           }),
         });
       } catch {
@@ -2695,7 +2695,7 @@
     }
 
     async loadHistory() {
-      if (!this.studentId || !this.courseId) {
+      if (!this.studentId || !this.courseIdentifier) {
         this.state.historyError = "Faltan student-id o course-id";
         this.state.historyLoaded = true;
         this.state.historyLoading = false;
@@ -2716,7 +2716,7 @@
         if (meth === "GET") {
           const u = new URL(reqUrl);
           u.searchParams.set("student_id", this.studentId);
-          u.searchParams.set("course_id", this.courseId);
+          u.searchParams.set("course_id", this.courseIdentifier);
           if (filterParam) u.searchParams.set("filter", filterParam);
           if (searchParam) u.searchParams.set("search", searchParam);
           reqUrl = u.toString();
@@ -2724,7 +2724,7 @@
           fetchOpts.headers["Content-Type"] = "application/json";
           const body = {
             student_id: this.studentId,
-            course_id: this.courseId,
+            course_id: this.courseIdentifier,
           };
           if (filterParam) body.filter = filterParam;
           if (searchParam) body.search = searchParam;
@@ -2782,7 +2782,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             student_id: this.studentId,
-            course_id: this.courseId,
+            course_id: this.courseIdentifier,
             question,
           }),
         });
