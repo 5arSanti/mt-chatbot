@@ -68,9 +68,21 @@
       if (/^[-*]\s+/.test(line)) {
         flushParagraph();
         const items = [];
-        while (i < lines.length && /^[-*]\s+/.test(lines[i])) {
-          items.push(`<li>${inline(lines[i].replace(/^[-*]\s+/, ""))}</li>`);
-          i++;
+        while (i < lines.length) {
+          if (/^[-*]\s+/.test(lines[i])) {
+            items.push(`<li>${inline(lines[i].replace(/^[-*]\s+/, ""))}</li>`);
+            i++;
+            continue;
+          }
+          if (lines[i].trim() === "") {
+            let j = i;
+            while (j < lines.length && lines[j].trim() === "") j++;
+            if (j < lines.length && /^[-*]\s+/.test(lines[j])) {
+              i = j;
+              continue;
+            }
+          }
+          break;
         }
         blocks.push(`<ul>${items.join("")}</ul>`);
         continue;
@@ -78,9 +90,21 @@
       if (/^\d+\.\s+/.test(line)) {
         flushParagraph();
         const items = [];
-        while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
-          items.push(`<li>${inline(lines[i].replace(/^\d+\.\s+/, ""))}</li>`);
-          i++;
+        while (i < lines.length) {
+          if (/^\d+\.\s+/.test(lines[i])) {
+            items.push(`<li>${inline(lines[i].replace(/^\d+\.\s+/, ""))}</li>`);
+            i++;
+            continue;
+          }
+          if (lines[i].trim() === "") {
+            let j = i;
+            while (j < lines.length && lines[j].trim() === "") j++;
+            if (j < lines.length && /^\d+\.\s+/.test(lines[j])) {
+              i = j;
+              continue;
+            }
+          }
+          break;
         }
         blocks.push(`<ol>${items.join("")}</ol>`);
         continue;
