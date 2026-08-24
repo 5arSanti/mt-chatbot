@@ -20,6 +20,84 @@
       .replace(/"/g, "&quot;");
   }
 
+  /**
+   * Convierte un subconjunto seguro de Markdown (negrita, cursiva, código,
+   * enlaces http(s)/mailto, encabezados, listas y párrafos) a HTML.
+   * El texto se escapa primero, por lo que cualquier HTML embebido en la
+   * entrada llega como texto literal y solo las etiquetas generadas aquí
+   * (whitelist) terminan en el DOM.
+   */
+  function renderMarkdown(raw) {
+    if (!raw) return "";
+    const escaped = escapeHtml(String(raw)).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    const lines = escaped.split("\n");
+
+    function inline(text) {
+      text = text.replace(/`([^`]+)`/g, "<code>$1</code>");
+      text = text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      text = text.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+      text = text.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
+      text = text.replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,!?:;]|$)/g, "$1<em>$2</em>");
+      text = text.replace(
+        /\[([^\]]+)\]\((https?:\/\/[^\s)]+|mailto:[^\s)]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+      );
+      return text;
+    }
+
+    const blocks = [];
+    let paragraph = [];
+    const flushParagraph = () => {
+      if (paragraph.length) {
+        blocks.push(`<p>${paragraph.join("<br>")}</p>`);
+        paragraph = [];
+      }
+    };
+
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      const heading = /^(#{1,6})\s+(.*)$/.exec(line);
+      if (heading) {
+        flushParagraph();
+        const level = heading[1].length;
+        blocks.push(`<h${level}>${inline(heading[2])}</h${level}>`);
+        i++;
+        continue;
+      }
+      if (/^[-*]\s+/.test(line)) {
+        flushParagraph();
+        const items = [];
+        while (i < lines.length && /^[-*]\s+/.test(lines[i])) {
+          items.push(`<li>${inline(lines[i].replace(/^[-*]\s+/, ""))}</li>`);
+          i++;
+        }
+        blocks.push(`<ul>${items.join("")}</ul>`);
+        continue;
+      }
+      if (/^\d+\.\s+/.test(line)) {
+        flushParagraph();
+        const items = [];
+        while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
+          items.push(`<li>${inline(lines[i].replace(/^\d+\.\s+/, ""))}</li>`);
+          i++;
+        }
+        blocks.push(`<ol>${items.join("")}</ol>`);
+        continue;
+      }
+      if (line.trim() === "") {
+        flushParagraph();
+        i++;
+        continue;
+      }
+      paragraph.push(inline(line));
+      i++;
+    }
+    flushParagraph();
+
+    return blocks.join("");
+  }
+
   function citationSourceLabel(source) {
     if (!source) return "Fuente";
     const last = source.split("/").pop() || source;
@@ -602,6 +680,38 @@
 .mt-msg-bot .bot-answer {
   font-family: system-ui, sans-serif;
   font-weight: 500;
+}
+
+.mt-md p { margin: 0 0 10px; }
+.mt-md p:last-child { margin-bottom: 0; }
+.mt-md ul, .mt-md ol { margin: 0 0 10px; padding-left: 20px; }
+.mt-md ul:last-child, .mt-md ol:last-child { margin-bottom: 0; }
+.mt-md li { margin-bottom: 4px; }
+.mt-md li:last-child { margin-bottom: 0; }
+.mt-md h1, .mt-md h2, .mt-md h3, .mt-md h4, .mt-md h5, .mt-md h6 {
+  margin: 14px 0 8px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.mt-md h1:first-child, .mt-md h2:first-child, .mt-md h3:first-child,
+.mt-md h4:first-child, .mt-md h5:first-child, .mt-md h6:first-child { margin-top: 0; }
+.mt-md h1 { font-size: 1.35em; }
+.mt-md h2 { font-size: 1.22em; }
+.mt-md h3 { font-size: 1.1em; }
+.mt-md h4, .mt-md h5, .mt-md h6 { font-size: 1em; }
+.mt-md strong { font-weight: 700; }
+.mt-md em { font-style: italic; }
+.mt-md code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.mt-md a {
+  color: #22d3ee;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .mt-typing-wrap {
@@ -2822,7 +2932,7 @@
     }
 
     renderBotMessage(m, msgIndex, latest = false) {
-      const text = escapeHtml(m.text);
+      const text = renderMarkdown(m.text);
       const citations = m.citations || [];
       const hasRefs = citations.length > 0;
       const panelId = `refs-panel-${msgIndex}`;
@@ -2880,7 +2990,7 @@
 
       return `<div class="mt-msg-bot-wrap${latest ? " mt-appear" : ""}">
         <div class="mt-msg-bot">
-          ${text ? `<div class="bot-answer">${text}</div>` : ""}
+          ${text ? `<div class="bot-answer mt-md">${text}</div>` : ""}
           ${refsBlock}
           ${
             showFeedback
@@ -3036,7 +3146,7 @@
                   const cCitations = (item.citations || []).map ? mapCitationsFromApi(item.citations || []) : [];
                   return `
                   <div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.12);">
-                    <p style="margin:0 0 10px;font-family:system-ui,sans-serif;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.6;">${escapeHtml(item.answer)}</p>
+                    <div class="mt-md" style="margin:0 0 10px;font-family:system-ui,sans-serif;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.6;">${renderMarkdown(item.answer)}</div>
                     ${cCitations.length > 0 ? `
                       <div style="margin-bottom:10px;">
                         <button type="button"
@@ -3273,7 +3383,7 @@
                   <div style="border-top:1px solid rgba(255,255,255,0.08);padding:20px 24px;">
                     <div style="margin-bottom:16px;">
                       <h4 style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;font-family:system-ui,sans-serif;margin:0 0 12px;">Respuesta Completa</h4>
-                      <p style="font-size:14px;color:rgba(255,255,255,0.8);line-height:1.7;margin:0;font-family:system-ui,sans-serif;white-space:pre-wrap;">${escapeHtml(item.answer || '')}</p>
+                      <div class="mt-md" style="font-size:14px;color:rgba(255,255,255,0.8);line-height:1.7;font-family:system-ui,sans-serif;">${renderMarkdown(item.answer || '')}</div>
                     </div>
                     <div style="padding-top:14px; margin-bottom: 20px; border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                       <span style="font-size:14px;color:rgba(255,255,255,0.5);font-family:system-ui,sans-serif;">¿Te fue útil?</span>
@@ -3686,7 +3796,7 @@
             >
               <div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(168,85,247,0.25),rgba(0,217,255,0.25));border-radius:18px;filter:blur(10px);opacity:0;transition:opacity 0.2s ease;pointer-events:none;z-index:0;"></div>
               <div class="mt-bot-bubble-card" style="position:relative;z-index:1;background:linear-gradient(135deg,rgba(255,255,255,0.08) 0%,rgba(255,255,255,0.13) 100%);border:1px solid rgba(255,255,255,0.18);border-radius:16px;padding:20px 24px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.1),0 4px 24px rgba(0,0,0,0.2);">
-                <p class="mt-bot-answer-text" style="color:rgba(255,255,255,0.9);line-height:1.6;margin:0;font-family:system-ui,sans-serif;font-size:15px;white-space:pre-wrap;">${escapeHtml(m.text)}</p>
+                <div class="mt-bot-answer-text mt-md" style="color:rgba(255,255,255,0.9);line-height:1.6;font-family:system-ui,sans-serif;font-size:15px;">${renderMarkdown(m.text)}</div>
                 <!-- Votación justo debajo de la respuesta -->
                 ${feedbackHtml}
               </div>
@@ -3809,7 +3919,7 @@
             >
               <div style="position:absolute;inset:-2px;background:linear-gradient(to right,rgba(168,85,247,0.25),rgba(0,217,255,0.25));border-radius:14px;filter:blur(8px);opacity:0;transition:opacity 0.2s ease;pointer-events:none;"></div>
               <div style="position:relative;background:linear-gradient(135deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.11) 100%);border:1px solid rgba(255,255,255,0.14);border-radius:12px;padding:12px 14px;">
-                <p style="color:rgba(255,255,255,0.9);font-size:13px;line-height:1.55;margin:0;font-family:system-ui,sans-serif;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word;">${escapeHtml(m.text)}</p>
+                <div class="mt-md" style="color:rgba(255,255,255,0.9);font-size:13px;line-height:1.55;font-family:system-ui,sans-serif;overflow-wrap:break-word;word-break:break-word;">${renderMarkdown(m.text)}</div>
               </div>
             </div>
             <!-- Citations acordeón -->
