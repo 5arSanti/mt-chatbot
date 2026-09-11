@@ -280,13 +280,13 @@
 
   // --- Tokens Figma (doc. referencia / historial / MacBook wide) ---------
   const THEME = {
-    primary: "#0421d1",
-    primaryRgb: "4, 66, 209",
-    text: "#4e4e4e",
-    textMuted: "#696969",
+    primary: "#27234c",
+    primaryRgb: "39, 35, 76",
+    text: "#4d4c4c",
+    textMuted: "#616160",
     userBubble: "#eaeaea",
     botBubble: "#f9f9f9",
-    border: "#d4d4d4",
+    border: "#e2e0e3",
     inputPlaceholder: "#bdbdbd",
   };
 
@@ -853,7 +853,7 @@
   padding: 0 16px;
   border: none;
   border-radius: 10px;
-  background: linear-gradient(135deg, ${t.primary}, #4f5fe0);
+  background: linear-gradient(135deg, ${t.primary}, #423c72);
   color: #fff;
   font-weight: 600;
   font-size: 14px;
@@ -1387,7 +1387,7 @@
   border: none;
   border-radius: 8px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: bold;
   color: #4d4c4c;
   font-family: system-ui, sans-serif;
 }
