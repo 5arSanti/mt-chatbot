@@ -291,7 +291,7 @@
   };
 
   const DARK = {
-    bg: "#0a0e27",
+    bg: "linear-gradient(90deg, #4d4c4c 0%, #6e2b57 100%)",
     bg2: "#1a1a3e",
     cyan: "#00d9ff",
     purple: "#a855f7",
