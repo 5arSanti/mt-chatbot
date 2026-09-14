@@ -414,6 +414,11 @@
   box-shadow: 0 0 4px #00d9ff;
 }
 
+.mt-launcher-av-dot--purple::after {
+  background: #a855f7;
+  box-shadow: 0 0 4px #a855f7;
+}
+
 .mt-launcher--hidden { display: none !important; }
 
 .mt-shell {
@@ -584,11 +589,11 @@
   font-size: 12px;
   font-weight: 600;
   font-family: system-ui, sans-serif;
-  color: var(--mt-primary);
+  color: #fff;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 999px;
   transition: background 0.15s, border-color 0.15s, transform 0.1s;
-  background: #fff;
+  background: #27234c;
 }
 
 .mt-btn-new-chat:hover {
@@ -1213,11 +1218,7 @@
 }
 
 .mt-bg-decorations {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 0;
+  display: none;
 }
 
 .mt-bg-orb {
@@ -1587,20 +1588,18 @@
 }
 
 .mt-shell--dark .mt-chat-toolbar {
-  background: linear-gradient(to bottom, rgba(255,255,255,0.95) 70%, transparent 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: transparent;
 }
 
 .mt-shell--dark .mt-btn-new-chat {
-  color: #27234c !important;
-  background: rgba(39,35,76,0.06) !important;
-  border: 1px solid rgba(39,35,76,0.25) !important;
+  color: #fff !important;
+  background: #27234c !important;
+  border: 1px solid #27234c !important;
 }
 
 .mt-shell--dark .mt-btn-new-chat:hover {
-  background: rgba(39,35,76,0.12) !important;
-  border-color: rgba(39,35,76,0.4) !important;
+  background: #3d3768 !important;
+  border-color: #3d3768 !important;
 }
 
 /* --- Empty state dark --- */
@@ -4536,8 +4535,12 @@
               <div class="mt-launcher-av-core"></div>
             </div>
             <div class="mt-launcher-av-orbit">
-              <div class="mt-launcher-av-dot" style="transform:rotate(45deg)"></div>
-              <div class="mt-launcher-av-dot" style="transform:rotate(225deg)"></div>
+              <div class="mt-launcher-av-dot" style="transform:rotate(0deg)"></div>
+              <div class="mt-launcher-av-dot mt-launcher-av-dot--purple" style="transform:rotate(60deg)"></div>
+              <div class="mt-launcher-av-dot" style="transform:rotate(120deg)"></div>
+              <div class="mt-launcher-av-dot mt-launcher-av-dot--purple" style="transform:rotate(180deg)"></div>
+              <div class="mt-launcher-av-dot" style="transform:rotate(240deg)"></div>
+              <div class="mt-launcher-av-dot mt-launcher-av-dot--purple" style="transform:rotate(300deg)"></div>
             </div>
           </div>
         </button>
