@@ -7,7 +7,7 @@
 
   /** Logo ENIGMA por defecto; se puede sobrescribir con el atributo `logo-url` en el elemento. */
   const DEFAULT_LOGO_URL =
-    "https://storage.googleapis.com/etraining-lms/Enigma/enigmaV1.webp";
+    "https://storage.googleapis.com/egroup-392615-storage-public/public/logo%20enigma.webp";
 
   // --- Utilidades ----------------------------------------------------------
 
