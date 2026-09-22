@@ -2598,7 +2598,7 @@
     get apiUrl() {
       return (
         this.getAttribute("api-url") ||
-        "https://enigma-44vnxklesa-ue.a.run.app"
+        "https://elab.ensename.us/api"
       );
     }
 
@@ -2622,6 +2622,14 @@
 
     get resetUrl(){
       return `${this.apiBaseUrl}/session/reset`;
+    }
+
+    get apiKey() {
+      return this.getAttribute("api-key") || "elab_nhTYaAoek6GWcHEPwj7_Yuk_g3cAxm1gyjF2UpmKFmI";
+    }
+
+    apiHeaders(extra) {
+      return { ...extra, "X-API-Key": this.apiKey };
     }
 
     /** "GET" | "POST" — si tu API usa GET con query params, pon history-method="GET". */
@@ -2711,7 +2719,7 @@
         const response = await fetch(this.likeUrl, {
           method: "POST",
           mode: "cors",
-          headers: { "Content-Type": "application/json" },
+          headers: this.apiHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({
             request_id: msg.requestId,
             like: nextLike,
@@ -2793,7 +2801,7 @@
         const response = await fetch(this.likeUrl, {
           method: "POST",
           mode: "cors",
-          headers: { "Content-Type": "application/json" },
+          headers: this.apiHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ request_id: itemId, like: nextLike }),
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -2815,7 +2823,7 @@
         await fetch(this.resetUrl, {
           method: "POST",
           mode: "cors",
-          headers: { "Content-Type": "application/json" },
+          headers: this.apiHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({
             student_id: this.studentId,
             course_id: this.courseIdentifier,
@@ -2856,7 +2864,7 @@
       try {
         const meth = this.historyMethod;
         let reqUrl = this.historyUrl;
-        const fetchOpts = { method: meth, mode: "cors", headers: {} };
+        const fetchOpts = { method: meth, mode: "cors", headers: this.apiHeaders() };
         const filterParam = this.historyFilterParam(this.state.historyFilter);
         const searchParam = this.state.historySearch || null;
 
@@ -2926,7 +2934,7 @@
         const response = await fetch(this.questionUrl, {
           method: "POST",
           mode: "cors",
-          headers: { "Content-Type": "application/json" },
+          headers: this.apiHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({
             student_id: this.studentId,
             course_id: this.courseIdentifier,
