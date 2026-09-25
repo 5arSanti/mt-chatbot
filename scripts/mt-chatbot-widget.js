@@ -2834,9 +2834,9 @@
       switch (filter) {
         case 'liked':    return 'like:1';
         case 'disliked': return 'like:0';
-        case 'alta':     return 'confidence:alta';
-        case 'media':    return 'confidence:media';
-        case 'baja':     return 'confidence:baja';
+        // case 'alta':     return 'confidence:alta';
+        // case 'media':    return 'confidence:media';
+        // case 'baja':     return 'confidence:baja';
         default:         return null;
       }
     }
@@ -3244,9 +3244,9 @@
         { value: 'all',      label: 'Todas',           icon: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` },
         { value: 'liked',    label: 'Útiles',          icon: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>` },
         { value: 'disliked', label: 'No útiles',       icon: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>` },
-        { value: 'alta',     label: 'Alta conf.',      icon: '' },
-        { value: 'media',    label: 'Conf. media',     icon: '' },
-        { value: 'baja',     label: 'Baja conf.',      icon: '' },
+        // { value: 'alta',     label: 'Alta conf.',      icon: '' },
+        // { value: 'media',    label: 'Conf. media',     icon: '' },
+        // { value: 'baja',     label: 'Baja conf.',      icon: '' },
       ];
       const filterChipsHtml = filterDefs.map(f => {
         const active = (historyFilter || 'all') === f.value;
@@ -3323,9 +3323,9 @@
         { value: 'all', label: 'Todas', icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` },
         { value: 'liked', label: 'Útiles', icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>` },
         { value: 'disliked', label: 'No útiles', icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>` },
-        { value: 'alta', label: 'Alta confianza', icon: ''},
-        { value: 'media', label: 'Confianza media', icon: ''},
-        { value: 'baja', label: 'Baja confianza', icon:''}
+        // { value: 'alta', label: 'Alta confianza', icon: ''},
+        // { value: 'media', label: 'Confianza media', icon: ''},
+        // { value: 'baja', label: 'Baja confianza', icon:''}
       ];
       const filterHtml = filterDefs.map(f => {
         const active = (historyFilter || 'all') === f.value;
