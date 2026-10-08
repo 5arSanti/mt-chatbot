@@ -27,9 +27,15 @@
    * entrada llega como texto literal y solo las etiquetas generadas aquí
    * (whitelist) terminan en el DOM.
    */
+  /** Marcadores de citación tipo [8:1source] / 【8:1†source】 que vienen embebidos
+   *  en el texto crudo del modelo; se muestran aparte como tarjetas de referencia. */
+  function stripCitationMarkers(text) {
+    return String(text).replace(/[\[【]\s*\d+:\d+\s*[:†]?\s*source\s*[\]】]/gi, "");
+  }
+
   function renderMarkdown(raw) {
     if (!raw) return "";
-    const escaped = escapeHtml(String(raw)).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    const escaped = escapeHtml(stripCitationMarkers(String(raw))).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
     const lines = escaped.split("\n");
 
     function inline(text) {
@@ -2842,9 +2848,6 @@
       switch (filter) {
         case 'liked':    return 'like:1';
         case 'disliked': return 'like:0';
-        case 'alta':     return 'confidence:alta';
-        case 'media':    return 'confidence:media';
-        case 'baja':     return 'confidence:baja';
         default:         return null;
       }
     }
@@ -3330,10 +3333,7 @@
       const filterDefs = [
         { value: 'all', label: 'Todas', icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` },
         { value: 'liked', label: 'Útiles', icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>` },
-        { value: 'disliked', label: 'No útiles', icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>` },
-        { value: 'alta', label: 'Alta confianza', icon: ''},
-        { value: 'media', label: 'Confianza media', icon: ''},
-        { value: 'baja', label: 'Baja confianza', icon:''}
+        { value: 'disliked', label: 'No útiles', icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>` }
       ];
       const filterHtml = filterDefs.map(f => {
         const active = (historyFilter || 'all') === f.value;
